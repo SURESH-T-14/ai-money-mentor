@@ -226,9 +226,16 @@ const MOCK_BUDGETS = {
 };
 
 const MOCK_AI_INSIGHT = {
+  id: 'ins1',
   title: "Food Spending Alert!",
   suggestion: "You've spent ₹201.45 on Food this month, which is 50% of your ₹400 budget. Try reducing dining out by 10% to stay on track."
 };
+
+const MOCK_AI_INSIGHTS = [
+  MOCK_AI_INSIGHT,
+  { id: 'ins2', title: 'Transport Trend', suggestion: "Transport costs increased 20% vs last month. Consider checking ride shares or monthly passes." },
+  { id: 'ins3', title: 'Savings Opportunity', suggestion: 'You have subscriptions you haven\'t used this month. Review and cancel unused services to save money.' }
+];
 
 const CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Health', 'Other'];
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF00FF'];
@@ -297,7 +304,7 @@ const DataContext = createContext(null);
 const DataProvider = ({ children }) => {
   const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS);
   const [budgets, setBudgets] = useState(MOCK_BUDGETS);
-  const [aiInsight, setAiInsight] = useState(MOCK_AI_INSIGHT);
+  const [insights, setInsights] = useState(MOCK_AI_INSIGHTS);
   const [investments, setInvestments] = useState(() => {
     try {
       const raw = localStorage.getItem('aim_investments');
@@ -330,6 +337,11 @@ const DataProvider = ({ children }) => {
       return newBudgets;
     });
   }, [transactions]);
+
+  // Insights management (mocked)
+  const addInsight = (title, suggestion) => {
+    setInsights(prev => [{ id: `ins${Math.random().toString(36).slice(2,8)}`, title, suggestion }, ...prev]);
+  };
 
   const addTransaction = (transaction) => {
     setLoading(true);
@@ -392,7 +404,7 @@ const DataProvider = ({ children }) => {
     }, 200);
   };
   
-  const value = { transactions, budgets, aiInsight, loading, addTransaction, deleteTransaction, addGoal, updateGoal, investments, addInvestment, deleteInvestment };
+  const value = { transactions, budgets, insights, loading, addTransaction, deleteTransaction, addGoal, updateGoal, investments, addInvestment, deleteInvestment, addInsight };
   
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
@@ -563,10 +575,29 @@ function AppLayout({ page, setPage }) {
   );
 }
 
+// Simple modal component
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-2xl rounded-md bg-white p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </div>
+        <div className="mt-4">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+
 // Dashboard Page
 function DashboardPage() {
-  const { budgets, transactions, aiInsight } = useData();
+  const { budgets, transactions, insights } = useData();
   const { user } = useAuth();
+  const [showInsights, setShowInsights] = useState(false);
+
+  const firstInsight = insights && insights.length ? insights[0] : null;
 
   const totalSpent = useMemo(() => 
     transactions.reduce((acc, t) => acc + t.amount, 0),
@@ -629,11 +660,29 @@ function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             <p className="text-lg font-semibold">{aiInsight.title}</p>
-             <p className="text-sm text-slate-600">{aiInsight.suggestion}</p>
-             <Button variant="outline" className="w-full">
+             {firstInsight ? (
+               <>
+                 <p className="text-lg font-semibold">{firstInsight.title}</p>
+                 <p className="text-sm text-slate-600">{firstInsight.suggestion}</p>
+               </>
+             ) : (
+               <p className="text-sm text-slate-500">No insights yet.</p>
+             )}
+             <Button variant="outline" className="w-full" onClick={() => setShowInsights(true)}>
                See All Insights
              </Button>
+             {showInsights && (
+               <Modal title="AI Insights" onClose={() => setShowInsights(false)}>
+                 <div className="space-y-4">
+                   {insights.map(ins => (
+                     <div key={ins.id} className="rounded-md border p-3">
+                       <p className="font-semibold">{ins.title}</p>
+                       <p className="text-sm text-slate-600">{ins.suggestion}</p>
+                     </div>
+                   ))}
+                 </div>
+               </Modal>
+             )}
           </CardContent>
         </Card>
       </div>
