@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext, useContext, useMemo } from 'react';
+import React, { useState, useEffect, createContext, useContext, useMemo, useRef } from 'react';
+import api from './utils/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { 
   LayoutDashboard, 
@@ -20,6 +21,46 @@ import {
 // We recreate the style of shadcn/ui components since we can't install them in a single file.
 
 const cn = (...classes) => classes.filter(Boolean).join(' ');
+
+// Load Google Identity Services script
+const loadGoogleScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      resolve();
+      return;
+    }
+    const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', reject);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+};
+
+// Minimal JWT decoder for Google credential (base64url only; NOT verifying signature)
+const decodeJwt = (token) => {
+  try {
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+};
 
 // Currency formatter (INR)
 const formatCurrency = (value) => {
@@ -248,50 +289,81 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mock Login
+  // Real login via API
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (email === 'test@example.com' && password === 'password123') {
-          setUser(MOCK_USER);
-          setLoading(false);
-          resolve(true);
-        } else {
-          setError('Invalid email or password. (Hint: test@example.com / password123)');
-          setLoading(false);
-          resolve(false);
-        }
-      }, 1000);
-    });
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      const { token, user } = res.data || {};
+      if (!token || !user) throw new Error('Invalid login response');
+      try { localStorage.setItem('token', token); } catch (e) {}
+      setUser(user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      const msg = e?.response?.data?.msg || 'Invalid email or password';
+      setError(msg);
+      setLoading(false);
+      return false;
+    }
   };
 
-  // Mock Register
+  // Real register via API
   const register = async (name, email, password) => {
     setLoading(true);
     setError(null);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (!name || !email || !password) {
-          setError('All fields are required.');
-          setLoading(false);
-          resolve(false);
-        } else {
-          setUser({ ...MOCK_USER, name, email });
-          setLoading(false);
-          resolve(true);
-        }
-      }, 1000);
-    });
+    try {
+      const res = await api.post('/auth/register', { name, email, password });
+      const { token, user } = res.data || {};
+      if (!token || !user) throw new Error('Invalid register response');
+      try { localStorage.setItem('token', token); } catch (e) {}
+      setUser(user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      const msg = e?.response?.data?.msg || 'Registration failed';
+      setError(msg);
+      setLoading(false);
+      return false;
+    }
   };
 
   // Mock Logout
   const logout = () => {
+    try { localStorage.removeItem('token'); } catch (e) {}
     setUser(null);
   };
 
-  const value = { user, loading, error, login, register, logout };
+  // Google login using backend verification
+  const loginWithGoogleCredential = async (credential) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.msg || 'Google auth failed');
+      }
+      const data = await res.json();
+      if (data.token) {
+        try { localStorage.setItem('token', data.token); } catch (e) {}
+      }
+      if (data.user) setUser(data.user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      setError(e.message || 'Google sign-in failed.');
+      setLoading(false);
+      return false;
+    }
+  };
+
+  const value = { user, loading, error, login, register, logout, loginWithGoogleCredential };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -378,6 +450,18 @@ const DataProvider = ({ children }) => {
     addGoal(category, goalAmount);
   };
 
+  const deleteGoal = (category) => {
+    // "Delete" a goal by setting it to 0 (keeps spent intact so history remains)
+    setLoading(true);
+    setTimeout(() => {
+      setBudgets(prev => {
+        const existing = prev[category] || { goal: 0, spent: 0 };
+        return { ...prev, [category]: { ...existing, goal: 0 } };
+      });
+      setLoading(false);
+    }, 200);
+  };
+
   // Investments management (persisted to localStorage)
   useEffect(() => {
     try {
@@ -404,7 +488,7 @@ const DataProvider = ({ children }) => {
     }, 200);
   };
   
-  const value = { transactions, budgets, insights, loading, addTransaction, deleteTransaction, addGoal, updateGoal, investments, addInvestment, deleteInvestment, addInsight };
+  const value = { transactions, budgets, insights, loading, addTransaction, deleteTransaction, addGoal, updateGoal, deleteGoal, investments, addInvestment, deleteInvestment, addInsight };
   
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
@@ -412,16 +496,20 @@ const DataProvider = ({ children }) => {
 const useData = () => useContext(DataContext);
 
 
-// --- Pages ---
+// --- Pages --- 
 
 // Auth Page (Login / Register)
 function AuthPage({ setPage }) {
   const [isLogin, setIsLogin] = useState(true);
   
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <Card className="w-full max-w-md">
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="background-container bg-login"></div>
+      <Card className="w-full max-w-md bg-white/95">
         <CardHeader>
+          <div className="flex justify-center mb-4">
+            <img src="/images/logo.png" alt="AI Money Mentor Logo" className="w-24 h-24" />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
             {isLogin ? 'Welcome Back!' : 'Create Account'}
           </CardTitle>
@@ -445,7 +533,8 @@ function AuthPage({ setPage }) {
 function LoginForm({ setPage }) {
   const [email, setEmail] = useState('test@example.com');
   const [password, setPassword] = useState('password123');
-  const { login, loading, error } = useAuth();
+  const { login, loading, error, loginWithGoogleCredential } = useAuth();
+  const googleDivRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -454,6 +543,38 @@ function LoginForm({ setPage }) {
       setPage('dashboard');
     }
   };
+
+  // Initialize Google button
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    let cancelled = false;
+    if (!clientId) return; // Hide if not configured
+    loadGoogleScript()
+      .then(() => {
+        if (cancelled) return;
+        /* global google */
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            const ok = await loginWithGoogleCredential(response.credential);
+            if (ok) setPage('dashboard');
+          },
+        });
+        if (googleDivRef.current) {
+          window.google.accounts.id.renderButton(googleDivRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: 320,
+            type: 'standard',
+            text: 'continue_with',
+            shape: 'rectangular',
+          });
+        }
+      })
+      .catch(() => {/* ignore */});
+    return () => { cancelled = true; };
+  }, [loginWithGoogleCredential, setPage]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -469,6 +590,14 @@ function LoginForm({ setPage }) {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Signing In...' : 'Sign In'}
       </Button>
+      {/* Google Sign-In */}
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID ? (
+        <div className="pt-2 flex flex-col items-center">
+          <div ref={googleDivRef} />
+        </div>
+      ) : (
+        <p className="text-xs text-slate-500 text-center">To enable Google Sign-In, set REACT_APP_GOOGLE_CLIENT_ID in the client env.</p>
+      )}
     </form>
   );
 }
@@ -477,7 +606,8 @@ function RegisterForm({ setPage }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, loading, error } = useAuth();
+  const { register, loading, error, loginWithGoogleCredential } = useAuth();
+  const googleDivRef = useRef(null);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -486,6 +616,37 @@ function RegisterForm({ setPage }) {
       setPage('dashboard');
     }
   };
+
+  // Initialize Google button (re-use same flow as login; this acts as Sign up)
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    let cancelled = false;
+    if (!clientId) return;
+    loadGoogleScript()
+      .then(() => {
+        if (cancelled) return;
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            const ok = await loginWithGoogleCredential(response.credential);
+            if (ok) setPage('dashboard');
+          },
+        });
+        if (googleDivRef.current) {
+          window.google.accounts.id.renderButton(googleDivRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: 320,
+            type: 'standard',
+            text: 'signup_with',
+            shape: 'rectangular',
+          });
+        }
+      })
+      .catch(() => {/* ignore */});
+    return () => { cancelled = true; };
+  }, [loginWithGoogleCredential, setPage]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -505,6 +666,13 @@ function RegisterForm({ setPage }) {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Creating Account...' : 'Create Account'}
       </Button>
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID ? (
+        <div className="pt-2 flex flex-col items-center">
+          <div ref={googleDivRef} />
+        </div>
+      ) : (
+        <p className="text-xs text-slate-500 text-center">To enable Google Sign-Up, set REACT_APP_GOOGLE_CLIENT_ID in the client env.</p>
+      )}
     </form>
   );
 }
@@ -519,57 +687,87 @@ function AppLayout({ page, setPage }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-100">
+    <div className="flex min-h-screen w-full">
+      {/* Background Container */}
+      <div className={`background-container ${
+        page === 'dashboard' ? 'bg-dashboard' :
+        page === 'transactions' ? 'bg-transactions' :
+        page === 'investments' ? 'bg-investments' :
+        page === 'goals' ? 'bg-goals' :
+        page === 'advisor' ? 'bg-dashboard' : ''
+      }`}></div>
+
       {/* Sidebar Navigation */}
-      <aside className="hidden w-64 flex-col border-r bg-white p-4 sm:flex">
-        <h1 className="mb-8 text-2xl font-bold text-slate-900">AI Money Mentor</h1>
+      <aside className="hidden w-64 flex-col border-r bg-gradient-to-b from-gray-800 to-gray-900 backdrop-blur-sm p-4 sm:flex">
+        <div className="flex items-center mb-8">
+          <img src="/images/logo.png" alt="AI Money Mentor Logo" className="w-8 h-8 mr-2" />
+          <h1 className="text-2xl font-bold text-white">AI Money Mentor</h1>
+        </div>
         <nav className="flex flex-col space-y-2">
           <Button
             variant={page === 'dashboard' ? 'secondary' : 'ghost'}
-            className="justify-start"
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'dashboard' ? 'bg-teal-600/30' : ''}`}
             onClick={() => setPage('dashboard')}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
           </Button>
           <Button
             variant={page === 'transactions' ? 'secondary' : 'ghost'}
-            className="justify-start"
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'transactions' ? 'bg-teal-600/30' : ''}`}
             onClick={() => setPage('transactions')}
           >
             <CreditCard className="mr-2 h-4 w-4" /> Transactions
           </Button>
           <Button
             variant={page === 'investments' ? 'secondary' : 'ghost'}
-            className="justify-start"
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'investments' ? 'bg-teal-600/30' : ''}`}
             onClick={() => setPage('investments')}
           >
             <TrendingUp className="mr-2 h-4 w-4" /> Investments
           </Button>
           <Button
             variant={page === 'goals' ? 'secondary' : 'ghost'}
-            className="justify-start"
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'goals' ? 'bg-teal-600/30' : ''}`}
             onClick={() => setPage('goals')}
           >
             <Target className="mr-2 h-4 w-4" /> Goals
           </Button>
+          <Button
+            variant={page === 'advisor' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'advisor' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('advisor')}
+          >
+            <Zap className="mr-2 h-4 w-4" /> Advisor
+          </Button>
         </nav>
         <div className="mt-auto flex flex-col space-y-2">
-           <div className="p-2 text-sm text-slate-700">
+           <div className="p-2 text-sm text-gray-300">
             <p className="font-medium">{user.name}</p>
-            <p className="text-xs text-slate-500">{user.email}</p>
+            <p className="text-xs text-gray-400">{user.email}</p>
           </div>
-          <Button variant="outline" className="justify-start" onClick={handleLogout}>
+          <Button 
+            variant="outline" 
+            className="justify-start text-white border-gray-600 hover:bg-gray-700 hover:text-teal-400" 
+            onClick={handleLogout}
+          >
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </div>
       </aside>
       
       {/* Main Content */}
+      
+      {/* Main Content */}
+      
+      {/* Main Content */}
       <main className="flex-1 p-4 sm:p-8">
-        {page === 'dashboard' && <DashboardPage />}
-        {page === 'transactions' && <TransactionsPage />}
-        {page === 'investments' && <InvestmentsPage />}
-        {page === 'goals' && <GoalsPage />}
+        <div className="bg-gray/95 backdrop-blur-sm rounded-lg p-6 min-h-full">
+          {page === 'dashboard' && <DashboardPage />}
+          {page === 'transactions' && <TransactionsPage />}
+          {page === 'investments' && <InvestmentsPage />}
+          {page === 'goals' && <GoalsPage />}
+          {page === 'advisor' && <ChatPage />}
+        </div>
       </main>
     </div>
   );
@@ -609,7 +807,7 @@ function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h2 className="text-3xl font-bold text-slate-900">Welcome back, {user.name.split(' ')[0]}!</h2>
+      <h2 className="text-3xl font-bold text-white-900">Welcome back, {user.name.split(' ')[0]}!</h2>
       
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -823,6 +1021,54 @@ function TransactionsPage() {
   );
 }
 
+// Simple AI chat page
+function ChatPage() {
+  const [messages, setMessages] = useState([{ role: 'assistant', content: 'Hi! I can help with budgeting, expenses, goals, and investments. Ask me anything money-related.' }]);
+  const [input, setInput] = useState('');
+
+  const sendMessage = async (e) => {
+    e?.preventDefault();
+    const text = input.trim();
+    if (!text) return;
+    const next = [...messages, { role: 'user', content: text }];
+    setMessages(next);
+    setInput('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-token': token || '' },
+        body: JSON.stringify({ message: text, history: next.slice(-6) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || 'Chat error');
+      setMessages(m => [...m, { role: 'assistant', content: data.reply }]);
+    } catch (err) {
+      const serverMsg = err?.message || 'Sorry, I had trouble generating advice.';
+      setMessages(m => [...m, { role: 'assistant', content: serverMsg + ' (Ensure you are logged in; try re-authenticating.)' }]);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      <h2 className="text-3xl font-bold text-slate-900">AI Advisor</h2>
+      <div className="flex-1 min-h-[300px] max-h-[60vh] overflow-auto rounded-md border bg-white p-4 space-y-3">
+        {messages.map((m, idx) => (
+          <div key={idx} className={cn('whitespace-pre-wrap', m.role === 'user' ? 'text-slate-900' : 'text-slate-700')}>
+            <span className={cn('text-xs uppercase font-semibold mr-2', m.role === 'user' ? 'text-teal-600' : 'text-purple-600')}>{m.role}</span>
+            {m.content}
+          </div>
+        ))}
+      </div>
+      <form onSubmit={sendMessage} className="flex gap-2">
+        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about your budget, expenses, goals, or investments..." />
+        <Button type="submit">Send</Button>
+      </form>
+      <p className="text-xs text-slate-500">Note: I only answer financial topics. Off-topic queries will be refused.</p>
+    </div>
+  );
+}
+
 
 // Investments Page (simple placeholder)
 function InvestmentsPage() {
@@ -905,7 +1151,7 @@ function InvestmentsPage() {
 
 // Goals Page
 function GoalsPage() {
-  const { budgets, addGoal, updateGoal } = useData();
+  const { budgets, addGoal, updateGoal, deleteGoal } = useData();
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [goalAmount, setGoalAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -939,7 +1185,19 @@ function GoalsPage() {
                     <p className="font-medium">{category}</p>
                     <p className="text-sm text-slate-500">Spent: {formatCurrency(data.spent)}</p>
                   </div>
-                  <div className="text-slate-700">Goal: {formatCurrency(data.goal)}</div>
+                  <div className="flex items-center space-x-2">
+                    <div className="text-slate-700">Goal: {formatCurrency(data.goal)}</div>
+                    <Button
+                      title="Delete goal"
+                      aria-label={`Delete goal for ${category}`}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-600 hover:text-red-700"
+                      onClick={() => deleteGoal(category)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -1071,13 +1329,27 @@ function App() {
 // (formatCurrency moved to top of file)
 
 // Final wrapper to provide all contexts
-const Root = () => (
-  <AuthProvider>
-    <DataProvider>
-      <App />
-    </DataProvider>
-  </AuthProvider>
-);
+const Root = () => {
+  useEffect(() => {
+    // Import background styles and set up CSS variables
+    import('./styles/backgrounds.css');
+    // Set background image paths directly
+    document.documentElement.style.setProperty('--dashboard-bg', 'url("/images/dashboard-bg.jpg")');
+    document.documentElement.style.setProperty('--transactions-bg', 'url("/images/transactions-bg.jpg")');
+    document.documentElement.style.setProperty('--goals-bg', 'url("/images/goals-bg.jpg")');
+    document.documentElement.style.setProperty('--login-bg', 'url("/images/login-bg.jpg")');
+    document.documentElement.style.setProperty('--investments-bg', 'url("/images/investments-bg.jpg")');
+    document.documentElement.style.setProperty('--settings-bg', 'url("/images/settings-bg.jpg")');
+  }, []);
+
+  return (
+    <AuthProvider>
+      <DataProvider>
+        <App />
+      </DataProvider>
+    </AuthProvider>
+  );
+};
 
 // In a real CRA/Next app, you'd export 'App' and render 'Root' in index.js
 // For this single-file preview, we'll export Root as the default.

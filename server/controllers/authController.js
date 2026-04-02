@@ -1,9 +1,19 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { OAuth2Client } = require('google-auth-library');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const ensureDbConnected = (res) => {
+  // readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (mongoose.connection.readyState !== 1) {
+    res.status(503).json({ msg: 'Database unavailable. Please try again shortly.' });
+    return false;
+  }
+  return true;
+};
 
 exports.register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -15,6 +25,8 @@ exports.register = async (req, res) => {
   if (typeof password !== 'string' || password.length < 6) {
     return res.status(400).json({ msg: 'Password must be at least 6 characters' });
   }
+
+  if (!ensureDbConnected(res)) return;
 
   try {
     let user = await User.findOne({ email });
@@ -45,6 +57,9 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
+    if (err.name === 'MongooseServerSelectionError') {
+      return res.status(503).json({ msg: 'Database unavailable. Please try again shortly.' });
+    }
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -55,6 +70,8 @@ exports.login = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ msg: 'email and password are required' });
   }
+
+  if (!ensureDbConnected(res)) return;
 
   try {
     let user = await User.findOne({ email });
@@ -88,6 +105,9 @@ exports.login = async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
+    if (err.name === 'MongooseServerSelectionError') {
+      return res.status(503).json({ msg: 'Database unavailable. Please try again shortly.' });
+    }
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -96,6 +116,8 @@ exports.googleLogin = async (req, res) => {
   try {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ msg: 'Missing credential' });
+
+    if (!ensureDbConnected(res)) return;
 
     // Verify Google token
     const ticket = await googleClient.verifyIdToken({
@@ -133,6 +155,9 @@ exports.googleLogin = async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
+    if (err.name === 'MongooseServerSelectionError') {
+      return res.status(503).json({ msg: 'Database unavailable. Please try again shortly.' });
+    }
     res.status(500).json({ msg: 'Server error' });
   }
 };
