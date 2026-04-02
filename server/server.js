@@ -22,7 +22,9 @@ app.get('/', (req, res) => {
 
 //Import Routes (we will create these next) 
  app.use('/api/auth', require('./routes/auth'));
- app.use('/api/transactions', require('./routes/transactions'));  
+ app.use('/api/users', require('./routes/users'));
+ app.use('/api/transactions', require('./routes/transactions'));
+ app.use('/api/ai', require('./routes/ai'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

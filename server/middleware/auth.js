@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-module.exports = function (req, res, next) {
+module.exports = async function (req, res, next) {
   // Get token from header
   const token = req.header('x-auth-token');
   if (!token) {
@@ -9,7 +10,22 @@ module.exports = function (req, res, next) {
   // Verify token
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user; // Add user payload to request object
+    const user = await User.findById(decoded.user.id).select('role status');
+
+    if (!user) {
+      return res.status(401).json({ msg: 'User not found' });
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({ msg: 'User is inactive' });
+    }
+
+    req.user = {
+      id: decoded.user.id,
+      role: user.role,
+      status: user.status
+    };
+
     next();
   } catch (err) {
     res.status(401).json({ msg: 'Token is not valid' });
