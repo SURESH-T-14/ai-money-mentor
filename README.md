@@ -1,128 +1,148 @@
-# AI Money Mentor - Backend Assessment Submission
+# AI Money Mentor
 
-This repository contains a finance dashboard project. For this assessment, the backend in the server folder is the primary submission and is designed to satisfy the Finance Data Processing and Access Control assignment.
+AI Money Mentor is a personal finance dashboard application with a React frontend and a Node.js/Express backend.
 
-## Submission Scope
+It helps users track transactions, review spending and income trends, and get finance-focused AI guidance.
 
-- Backend folder: server
-- Stack: Node.js, Express, MongoDB, Mongoose, JWT
-- Focus: API design, role-based access control, financial records processing, summary analytics, validation, and reliability
+## Features
 
-## Evaluation Criteria Mapping
+- User authentication (email/password and Google login)
+- Role-based access control (viewer, analyst, admin)
+- User status support (active and inactive)
+- Transaction management (create, read, update, delete)
+- Transaction filtering and pagination
+- Dashboard summary analytics:
+  - total income
+  - total expenses
+  - net balance
+  - category totals
+  - recent activity
+  - monthly trends
+- AI money mentor chat endpoint with finance-topic guardrails
+- Seed script for demo users and sample data
+- Postman collection for quick API testing
 
-### 1. Backend Design
+## Tech Stack
 
-Implemented with clear separation of concerns:
+Frontend:
+- React
+- Axios
+- Recharts
 
-- Models: user, transaction, budget
-- Middleware: authentication and role authorization
-- Controllers: auth, users, transactions, AI advisor
-- Routes: grouped by domain under api/auth, api/users, api/transactions, api/ai
+Backend:
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT
 
-### 2. Logical Thinking
+## Project Structure
 
-Business rules and access control are explicit:
+- client: React frontend
+- server: Node.js/Express backend
 
-- Roles: viewer, analyst, admin
-- Status: active and inactive users
-- Inactive users are blocked from protected APIs
-- Viewer and analyst are read-only for records and summaries
-- Admin can manage users and create/update/delete transactions
+## Prerequisites
 
-### 3. Functionality
+- Node.js 18+
+- npm
+- MongoDB connection string
 
-Implemented APIs include:
+## Setup
 
-- Authentication: register, login, google login
-- User management: profile, list users, create user, update user
-- Financial records: create, list, update, delete transactions
-- Filtering and pagination for transaction listing
-- Dashboard summary: total income, total expenses, net balance, category totals, recent activity, monthly trends
-- AI finance chat endpoint with money-topic guardrails
+1. Clone repository and open project root.
+2. Install frontend dependencies:
 
-### 4. Code Quality
+```bash
+cd client
+npm install
+```
 
-- Consistent naming and modular structure
-- Dedicated middleware for auth and authorization
-- Reusable validation helpers in transaction logic
-- Focused controllers by domain responsibility
+3. Install backend dependencies:
 
-### 5. Database and Data Modeling
+```bash
+cd ../server
+npm install
+```
 
-Persistence uses MongoDB with Mongoose schemas:
+4. Create server environment file at server/.env:
 
-- User: name, email, password, role, status
-- Transaction: user, amount, type, category, date, description, notes
-- Budget: user, category, goal
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+PORT=5000
+GOOGLE_CLIENT_ID=optional
+OPENAI_API_KEY=optional
+```
 
-### 6. Validation and Reliability
+## Run the App
 
-- Required field checks in auth/user/transaction flows
-- Query and payload validation for transaction filters and updates
-- Invalid IDs and invalid input handled with 400 responses
-- Unauthorized and forbidden states handled with 401 and 403
-- Not found handled with 404
-- Server failures handled with 500
+Run backend:
 
-### 7. Documentation
+```bash
+cd server
+npm run dev
+```
 
-- This root README explains architecture and assignment mapping
-- Backend usage and endpoint details are in server/README.md
-- Postman collection included for API walkthrough
-- Seed script included for evaluator-friendly setup
+Run frontend (new terminal):
 
-### 8. Additional Thoughtfulness
+```bash
+cd client
+npm start
+```
 
-Included practical evaluator features:
+Default URLs:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
 
-- Seed script to create demo users and sample data
-- Postman collection with token automation and RBAC checks
-- Role-based permission matrix reflected directly in route protection
+## Demo Data
 
-## Quick Start (Backend)
+Seed sample data:
 
-1. Open terminal in server folder.
-2. Install dependencies:
-   npm install
-3. Configure environment in server/.env:
-   - MONGO_URI=<mongodb_connection_string>
-   - JWT_SECRET=<jwt_secret>
-   - PORT=5000
-   - GOOGLE_CLIENT_ID=<optional>
-   - OPENAI_API_KEY=<optional>
-4. Seed demo data:
-   npm run seed
-5. Run server:
-   npm run dev
+```bash
+cd server
+npm run seed
+```
 
-## Demo Credentials (after seed)
-
+Demo users:
 - admin@finance.local / Admin@123
 - analyst@finance.local / Analyst@123
 - viewer@finance.local / Viewer@123
 
-## API Testing
+## API Overview
 
-Import Postman collection:
+Base URL: http://localhost:5000/api
 
+Auth:
+- POST /auth/register
+- POST /auth/login
+- POST /auth/google
+
+Users:
+- GET /users/me
+- GET /users (admin)
+- POST /users (admin)
+- PATCH /users/:id (admin)
+
+Transactions:
+- GET /transactions
+- POST /transactions (admin)
+- PUT /transactions/:id (admin)
+- DELETE /transactions/:id (admin)
+- GET /transactions/summary
+
+AI:
+- POST /ai/chat
+
+## Postman Collection
+
+Import file:
 - server/postman/Finance-Backend.postman_collection.json
 
-Recommended order:
+## Notes
 
-1. Login Admin
-2. Login Analyst
-3. Login Viewer
-4. Run transactions and summary
-5. Run RBAC checks
+- Frontend API base URL is currently hardcoded in client/src/utils/api.js to http://localhost:5000/api.
+- For deployment, update that file to use your deployed backend URL.
 
-## Key Assumptions and Tradeoffs
+## License
 
-- Assignment scope prioritized backend clarity and correctness over production hardening.
-- Access control is role-based at route level and status-aware.
-- Validation is implemented in controllers without a separate validation library to keep setup simple.
-- Tests are not yet included; Postman collection and seed flow provide reproducible manual verification.
-
-## Project Structure
-
-- client: frontend app
-- server: backend submission for this assignment
+This project is for learning and portfolio use.
