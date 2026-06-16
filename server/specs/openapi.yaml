@@ -1,0 +1,753 @@
+openapi: 3.0.0
+info:
+  title: AI Money Mentor API
+  description: |
+    A comprehensive financial management API with AI-powered advice and transaction tracking.
+    This API provides authentication, user management, transaction tracking, and AI-driven financial insights.
+  version: 1.0.0
+  contact:
+    name: AI Money Mentor Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.aimoneymentor.com
+    description: Production server
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+                password:
+                  type: string
+                  minLength: 6
+                  example: "password123"
+      responses:
+        201:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        400:
+          description: Invalid input or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user with email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+                password:
+                  type: string
+                  minLength: 6
+                  example: "password123"
+      responses:
+        200:
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        401:
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/google:
+    post:
+      summary: Google OAuth login
+      description: Authenticate user with Google OAuth token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  example: "google_oauth_token_here"
+      responses:
+        200:
+          description: User logged in with Google successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        400:
+          description: Invalid Google token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/me:
+    get:
+      summary: Get current user profile
+      description: Retrieve the authenticated user's profile information
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        401:
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users:
+    get:
+      summary: List all users (admin only)
+      description: Get a list of all users in the system
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Users list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create a new user (admin only)
+      description: Create a new user in the system
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: "Jane Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "jane@example.com"
+                password:
+                  type: string
+                  minLength: 6
+                  example: "password123"
+                role:
+                  type: string
+                  enum: ['viewer', 'analyst', 'admin']
+                  example: "viewer"
+      responses:
+        201:
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid input or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{id}:
+    patch:
+      summary: Update user (admin only)
+      description: Update a user's information
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID (MongoDB ObjectId)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                role:
+                  type: string
+                  enum: ['viewer', 'analyst', 'admin']
+                status:
+                  type: string
+                  enum: ['active', 'inactive']
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/transactions:
+    get:
+      summary: Get user transactions
+      description: Retrieve all transactions for the authenticated user
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Add a new transaction
+      description: Create a new transaction for the user
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - type
+                - category
+                - date
+              properties:
+                description:
+                  type: string
+                  maxLength: 200
+                  example: "Grocery shopping"
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "Weekly groceries from Whole Foods"
+                amount:
+                  type: number
+                  minimum: 0.01
+                  example: 150.50
+                type:
+                  type: string
+                  enum: ['income', 'expense']
+                  example: "expense"
+                category:
+                  type: string
+                  minLength: 1
+                  example: "Food & Groceries"
+                date:
+                  type: string
+                  format: date-time
+                  example: "2024-06-15T10:30:00Z"
+      responses:
+        201:
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        400:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/transactions/summary:
+    get:
+      summary: Get transaction summary
+      description: Retrieve dashboard summary for current user (total income, expenses, balance)
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Transaction summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  summary:
+                    type: object
+                    properties:
+                      totalIncome:
+                        type: number
+                        example: 5000.00
+                      totalExpense:
+                        type: number
+                        example: 1500.00
+                      balance:
+                        type: number
+                        example: 3500.00
+                      transactionCount:
+                        type: integer
+                        example: 25
+                      categoryBreakdown:
+                        type: object
+                        additionalProperties:
+                          type: number
+                        example:
+                          "Food & Groceries": 450
+                          "Utilities": 200
+                          "Entertainment": 300
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/transactions/{id}:
+    put:
+      summary: Update a transaction
+      description: Update an existing transaction
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Transaction ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  maxLength: 200
+                notes:
+                  type: string
+                  maxLength: 500
+                amount:
+                  type: number
+                  minimum: 0.01
+                type:
+                  type: string
+                  enum: ['income', 'expense']
+                category:
+                  type: string
+                  minLength: 1
+                date:
+                  type: string
+                  format: date-time
+      responses:
+        200:
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        400:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a transaction
+      description: Delete an existing transaction
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Transaction ID
+      responses:
+        200:
+          description: Transaction deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Transaction deleted"
+        404:
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ai/chat:
+    post:
+      summary: Get AI financial advice
+      description: Send a question to the AI money management advisor and receive personalized financial insights
+      tags:
+        - AI Advisor
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  example: "How can I reduce my spending on groceries?"
+      responses:
+        200:
+          description: AI advice generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  advice:
+                    type: string
+                    example: "Based on your spending patterns, here are some strategies to reduce your grocery expenses..."
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Plan meals weekly to avoid impulse purchases"
+                      - "Use coupons and loyalty programs"
+                      - "Buy seasonal produce"
+        400:
+          description: Invalid input or message too long
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - _id
+        - name
+        - email
+        - role
+        - status
+        - createdAt
+      properties:
+        _id:
+          type: string
+          format: uuid
+          example: "507f1f77bcf86cd799439011"
+          description: User ID (MongoDB ObjectId)
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        role:
+          type: string
+          enum: ['viewer', 'analyst', 'admin']
+          example: "viewer"
+        status:
+          type: string
+          enum: ['active', 'inactive']
+          example: "active"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-06-15T10:30:00Z"
+
+    Transaction:
+      type: object
+      required:
+        - _id
+        - user
+        - amount
+        - type
+        - category
+        - date
+      properties:
+        _id:
+          type: string
+          format: uuid
+          example: "507f1f77bcf86cd799439012"
+          description: Transaction ID
+        user:
+          type: string
+          format: uuid
+          example: "507f1f77bcf86cd799439011"
+          description: User ID (MongoDB ObjectId)
+        description:
+          type: string
+          example: "Grocery shopping"
+        notes:
+          type: string
+          example: "Weekly groceries from Whole Foods"
+        amount:
+          type: number
+          example: 150.50
+        type:
+          type: string
+          enum: ['income', 'expense']
+          example: "expense"
+        category:
+          type: string
+          example: "Food & Groceries"
+        date:
+          type: string
+          format: date-time
+          example: "2024-06-15T10:30:00Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "An error occurred"
+        error:
+          type: string
+          example: "Detailed error message"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login or registration

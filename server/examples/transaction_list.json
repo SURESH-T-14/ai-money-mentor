@@ -1,0 +1,37 @@
+{
+  "http-request": {
+    "method": "GET",
+    "path": "/api/transactions",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "transactions": [
+        {
+          "_id": "(string)",
+          "user": "(string)",
+          "description": "Grocery shopping",
+          "notes": "Weekly groceries",
+          "amount": 150.50,
+          "type": "expense",
+          "category": "Food & Groceries",
+          "date": "(string)"
+        },
+        {
+          "_id": "(string)",
+          "user": "(string)",
+          "description": "Salary",
+          "notes": "Monthly salary",
+          "amount": 5000.00,
+          "type": "income",
+          "category": "Salary",
+          "date": "(string)"
+        }
+      ]
+    }
+  }
+}

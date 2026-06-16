@@ -1,0 +1,22 @@
+version: 3
+
+systemUnderTest:
+  service:
+    definitions:
+      - definition:
+          specPath: ./specs/openapi.yaml
+    runOptions:
+      openapi:
+        type: test
+        baseUrl: "${APP_URL:http://localhost:5000}"
+    data:
+      examples:
+        - directories:
+            - ./examples
+
+specmatic:
+  settings:
+    test:
+      strictMode: true
+      schemaResiliencyTests: positive
+      requestTimeout: 5000

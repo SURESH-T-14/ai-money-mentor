@@ -1,0 +1,24 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/ai/chat",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    },
+    "body": {
+      "message": "How can I reduce my spending on groceries?"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "advice": "(string)",
+      "suggestions": [
+        "(string)",
+        "(string)",
+        "(string)"
+      ]
+    }
+  }
+}
