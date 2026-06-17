@@ -31,3 +31,4 @@ Thumbs.db
 coverage/
 **/.cache/
 *.log
+specmatic/schema-resiliency/.work/

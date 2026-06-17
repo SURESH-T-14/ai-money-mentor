@@ -1,0 +1,108 @@
+name: Specmatic Tests
+
+on:
+  push:
+  pull_request:
+
+env:
+  SPECMATIC_IMAGE: specmatic/specmatic:latest
+
+jobs:
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Specmatic license
+        env:
+          SPECMATIC_LICENSE_TEXT: ${{ secrets.SPECMATIC_LICENSE }}
+        run: |
+          if [ -n "$SPECMATIC_LICENSE_TEXT" ]; then
+            mkdir -p specmatic
+            printf '%s' "$SPECMATIC_LICENSE_TEXT" > specmatic/specmatic-license.txt
+            echo "SPECMATIC_LICENSE_FILE=$PWD/specmatic/specmatic-license.txt" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Specmatic Docker image
+        run: docker run --rm "$SPECMATIC_IMAGE" --version
+
+      - name: Run contract tests
+        run: bash scripts/run-specmatic-mode.sh none
+
+      - name: Upload contract report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specmatic-contract-report
+          path: |
+            reports/contract-test-report.html
+            reports/contract-test-output.txt
+
+  positive-resiliency-tests:
+    name: Positive Resiliency Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Specmatic license
+        env:
+          SPECMATIC_LICENSE_TEXT: ${{ secrets.SPECMATIC_LICENSE }}
+        run: |
+          if [ -n "$SPECMATIC_LICENSE_TEXT" ]; then
+            mkdir -p specmatic
+            printf '%s' "$SPECMATIC_LICENSE_TEXT" > specmatic/specmatic-license.txt
+            echo "SPECMATIC_LICENSE_FILE=$PWD/specmatic/specmatic-license.txt" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Specmatic Docker image
+        run: docker run --rm "$SPECMATIC_IMAGE" --version
+
+      - name: Run positive only resiliency tests
+        run: bash scripts/run-specmatic-mode.sh positiveOnly
+
+      - name: Upload positive resiliency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specmatic-positive-resiliency-report
+          path: |
+            reports/positive-only-report.html
+            reports/positive-only-output.txt
+
+  full-resiliency-tests:
+    name: Full Resiliency Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Specmatic license
+        env:
+          SPECMATIC_LICENSE_TEXT: ${{ secrets.SPECMATIC_LICENSE }}
+        run: |
+          if [ -n "$SPECMATIC_LICENSE_TEXT" ]; then
+            mkdir -p specmatic
+            printf '%s' "$SPECMATIC_LICENSE_TEXT" > specmatic/specmatic-license.txt
+            echo "SPECMATIC_LICENSE_FILE=$PWD/specmatic/specmatic-license.txt" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Specmatic Docker image
+        run: docker run --rm "$SPECMATIC_IMAGE" --version
+
+      - name: Run full resiliency tests
+        run: bash scripts/run-specmatic-mode.sh all
+
+      - name: Upload full resiliency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specmatic-full-resiliency-report
+          path: |
+            reports/resiliency-report.html
+            reports/resiliency-output.txt

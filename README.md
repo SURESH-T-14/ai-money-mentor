@@ -1,70 +1,47 @@
 # AI Money Mentor
 
-AI Money Mentor is a personal finance dashboard application with a React frontend and a Node.js/Express backend.
+## 1. Project Overview
 
-It helps users track transactions, review spending and income trends, and get finance-focused AI guidance.
+AI Money Mentor is a personal finance dashboard with a React frontend and a Node.js/Express backend. It supports authentication, role-based access control, transaction tracking, dashboard summaries, and an AI money mentor chat endpoint.
 
-## Features
+This repository also includes a Specmatic Docker-based contract testing setup. The Specmatic suite demonstrates contract tests and schema resiliency tests in three modes: `none`, `positiveOnly`, and `all`.
 
-- User authentication (email/password and Google login)
-- Role-based access control (viewer, analyst, admin)
-- User status support (active and inactive)
-- Transaction management (create, read, update, delete)
-- Transaction filtering and pagination
-- Dashboard summary analytics:
-  - total income
-  - total expenses
-  - net balance
-  - category totals
-  - recent activity
-  - monthly trends
-- AI money mentor chat endpoint with finance-topic guardrails
-- Seed script for demo users and sample data
-- Postman collection for quick API testing
+Specmatic is not installed as an npm package in this project. Use the official Docker image instead:
 
-## Tech Stack
+```bash
+docker run --rm specmatic/specmatic --version
+```
 
-Frontend:
-- React
-- Axios
-- Recharts
+If the assignment requires Specmatic Enterprise, use:
 
-Backend:
-- Node.js
-- Express
-- MongoDB
-- Mongoose
-- JWT
+```bash
+docker run --rm specmatic/enterprise --version
+```
 
-## Project Structure
+## 2. Setup Instructions
 
-- client: React frontend
-- server: Node.js/Express backend
-
-## Prerequisites
+Prerequisites:
 
 - Node.js 18+
 - npm
-- MongoDB connection string
+- MongoDB or a MongoDB connection string
+- Docker for Specmatic tests
 
-## Setup
-
-1. Clone repository and open project root.
-2. Install frontend dependencies:
+Install frontend dependencies:
 
 ```bash
 cd client
 npm install
 ```
 
-3. Install backend dependencies:
+Install backend dependencies:
 
 ```bash
 cd ../server
 npm install
 ```
 
-4. Create server environment file at server/.env:
+Create `server/.env`:
 
 ```env
 MONGO_URI=your_mongodb_connection_string
@@ -74,16 +51,14 @@ GOOGLE_CLIENT_ID=optional
 OPENAI_API_KEY=optional
 ```
 
-## Run the App
-
-Run backend:
+Run the backend:
 
 ```bash
 cd server
 npm run dev
 ```
 
-Run frontend (new terminal):
+Run the frontend in another terminal:
 
 ```bash
 cd client
@@ -91,58 +66,184 @@ npm start
 ```
 
 Default URLs:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
 
-## Demo Data
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
 
-Seed sample data:
+## 3. Contract Testing
+
+Contract testing runs with `schemaResiliencyTests: none`. This validates only the contract examples.
+
+From the repository root:
+
+```bash
+bash scripts/run-specmatic-mode.sh none
+```
+
+On Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 none
+```
+
+Or from the backend folder:
 
 ```bash
 cd server
-npm run seed
+npm run test:contract
 ```
 
-Demo users:
-- admin@finance.local / Admin@123
-- analyst@finance.local / Analyst@123
-- viewer@finance.local / Viewer@123
+Expected passing summary:
 
-## API Overview
+```text
+Tests run: 3, Successes: 3, Failures: 0, WIP: 0, Errors: 0
+```
 
-Base URL: http://localhost:5000/api
+Generated report:
 
-Auth:
-- POST /auth/register
-- POST /auth/login
-- POST /auth/google
+- `reports/contract-test-report.html`
 
-Users:
-- GET /users/me
-- GET /users (admin)
-- POST /users (admin)
-- PATCH /users/:id (admin)
+## 4. Schema Resiliency Testing
 
-Transactions:
-- GET /transactions
-- POST /transactions (admin)
-- PUT /transactions/:id (admin)
-- DELETE /transactions/:id (admin)
-- GET /transactions/summary
+Positive-only resiliency testing runs with `schemaResiliencyTests: positiveOnly`. It generates valid input variations from the schema.
 
-AI:
-- POST /ai/chat
+```bash
+bash scripts/run-specmatic-mode.sh positiveOnly
+```
 
-## Postman Collection
+On Windows PowerShell:
 
-Import file:
-- server/postman/Finance-Backend.postman_collection.json
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 positiveOnly
+```
 
-## Notes
+Expected passing summary:
 
-- Frontend API base URL is currently hardcoded in client/src/utils/api.js to http://localhost:5000/api.
-- For deployment, update that file to use your deployed backend URL.
+```text
+Tests run: 42, Successes: 42, Failures: 0, WIP: 0, Errors: 0
+```
 
-## License
+Generated report:
 
-This project is for learning and portfolio use.
+- `reports/positive-only-report.html`
+
+Full resiliency testing runs with `schemaResiliencyTests: all`. It generates valid and invalid combinations to exercise error handling and edge cases.
+
+```bash
+bash scripts/run-specmatic-mode.sh all
+```
+
+On Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 all
+```
+
+Expected passing summary:
+
+```text
+Tests run: 600, Successes: 600, Failures: 0
+```
+
+Generated report:
+
+- `reports/resiliency-report.html`
+
+## 5. Test Results
+
+| Test mode | `schemaResiliencyTests` | Expected tests | Expected successes | Expected failures | Report |
+| --- | --- | ---: | ---: | ---: | --- |
+| Contract Tests | `none` | 3 | 3 | 0 | `reports/contract-test-report.html` |
+| Positive Only Resiliency Tests | `positiveOnly` | 42 | 42 | 0 | `reports/positive-only-report.html` |
+| Full Resiliency Tests | `all` | 600 | 600 | 0 | `reports/resiliency-report.html` |
+
+The runner also writes raw console output beside each HTML report:
+
+- `reports/contract-test-output.txt`
+- `reports/positive-only-output.txt`
+- `reports/resiliency-output.txt`
+
+## 6. Screenshots
+
+Screenshots for submission evidence should be stored in:
+
+- `reports/screenshots/`
+
+Recommended screenshot evidence:
+
+- Contract run showing `Tests run: 3` and `Successes: 3`
+- Positive-only resiliency run showing `Tests run: 42` and `Successes: 42`
+- Full resiliency run showing `Tests run: 600` and `Successes: 600`
+
+The generated HTML reports are the primary report artifacts. Screenshots can be captured from the reports, Specmatic Studio, or GitHub Actions logs.
+
+## 7. CI/CD Pipeline
+
+Specmatic tests run in GitHub Actions through:
+
+- `.github/workflows/specmatic.yml`
+
+The workflow has separate jobs for:
+
+- Contract Tests
+- Positive Resiliency Tests
+- Full Resiliency Tests
+
+Each job:
+
+- Checks out the repository
+- Verifies the Specmatic Docker image
+- Runs the correct `schemaResiliencyTests` mode
+- Uploads the generated report and console output as GitHub Actions artifacts
+
+If Specmatic Enterprise is required, configure the workflow image and add the Enterprise license text as a `SPECMATIC_LICENSE` GitHub secret.
+
+## 8. Learnings
+
+### Contract Testing
+
+- Verifies API behavior matches the OpenAPI specification.
+- Detects breaking API changes early.
+
+### Schema Resiliency Testing
+
+- Tests how APIs react to invalid requests.
+- Ensures proper HTTP error handling.
+- Validates robustness against malformed input.
+
+### Positive Only Mode
+
+- Generates valid input variations.
+- Improves test coverage.
+
+### All Mode
+
+- Generates valid and invalid combinations.
+- Reveals edge cases and schema weaknesses.
+
+### Key Observation
+
+- Test count increased from 3 to 42 to 600.
+- More schema permutations produce greater confidence in API reliability.
+
+## 9. Repository Structure
+
+```text
+.
+|-- .github/workflows/specmatic.yml
+|-- client/
+|-- reports/
+|   |-- README.md
+|   `-- screenshots/
+|-- scripts/
+|   |-- run-specmatic-mode.ps1
+|   `-- run-specmatic-mode.sh
+|-- server/
+|   |-- package.json
+|   |-- specmatic.yaml
+|   `-- specs/openapi.yaml
+`-- specmatic/
+    `-- schema-resiliency/
+        |-- README.md
+        `-- examples/
+```

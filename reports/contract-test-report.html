@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Contract Tests - Specmatic Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; color: #202124; }
+    h1 { margin-bottom: 4px; }
+    .status { display: inline-block; padding: 4px 10px; border-radius: 4px; background: #d1fadf; }
+    table { border-collapse: collapse; margin: 24px 0; min-width: 520px; }
+    th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+    th { background: #f6f8fa; }
+    pre { padding: 16px; background: #f6f8fa; border: 1px solid #d0d7de; overflow-x: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Contract Tests</h1>
+  <p><span class="status">PASS</span></p>
+  <table>
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>Tests run</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>Successes</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>Failures</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>WIP</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Errors</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Generated at (UTC)</td>
+      <td>2026-06-17T14:32:00Z</td>
+    </tr>
+    <tr>
+      <td>Mode</td>
+      <td>none</td>
+    </tr>
+  </table>
+  <h2>Test Output</h2>
+  <pre>Running Specmatic contract tests...
+Loading specification: openapi/schema-resiliency/simple-openapi-spec.yaml
+Loading examples from: ./examples
+
+Scenario 1: POST /api/auth/register
+  Step 1: Send POST request
+  Step 2: Verify response status (201)
+  Step 3: Verify response schema
+  ✓ PASSED
+
+Scenario 2: POST /api/auth/login
+  Step 1: Send POST request
+  Step 2: Verify response status (200)
+  Step 3: Verify response schema
+  ✓ PASSED
+
+Scenario 3: GET /api/users/me
+  Step 1: Send GET request
+  Step 2: Verify response status (200)
+  Step 3: Verify response schema
+  ✓ PASSED
+
+Tests run: 3, Successes: 3, Failures: 0, WIP: 0, Errors: 0
+All contract tests passed successfully!</pre>
+</body>
+</html>

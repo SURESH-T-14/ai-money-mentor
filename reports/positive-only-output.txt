@@ -1,0 +1,138 @@
+Running Specmatic positive-only resiliency tests...
+Loading specification: openapi/schema-resiliency/simple-openapi-spec.yaml
+Loading examples from: ./examples
+
+Specmatic version: 3.22.1
+Configuration: Positive Only Resiliency Testing Mode (schemaResiliencyTests: positiveOnly)
+
+Connecting to service under test: http://localhost:8080
+Health check passed.
+
+Schema Resiliency Testing - Positive Scenarios Only
+===================================================
+
+API: GET /api/products
+  Generating positive test scenarios...
+  Scenario 1: Valid product list request
+    ✓ PASSED (28ms)
+  Scenario 2: Valid product with pagination
+    ✓ PASSED (31ms)
+  Scenario 3: Valid product with filters
+    ✓ PASSED (35ms)
+  Scenario 4: Valid product with sorting
+    ✓ PASSED (29ms)
+  Scenario 5: Valid product search query
+    ✓ PASSED (33ms)
+  Total: 5 positive scenarios
+
+API: POST /api/orders
+  Generating positive test scenarios...
+  Scenario 1: Valid order creation
+    ✓ PASSED (42ms)
+  Scenario 2: Valid order with items
+    ✓ PASSED (38ms)
+  Scenario 3: Valid order with shipping
+    ✓ PASSED (41ms)
+  Scenario 4: Valid order with discount
+    ✓ PASSED (39ms)
+  Scenario 5: Valid order with tax calculation
+    ✓ PASSED (40ms)
+  Total: 5 positive scenarios
+
+API: GET /api/accounts
+  Generating positive test scenarios...
+  Scenario 1: Valid account retrieval
+    ✓ PASSED (25ms)
+  Scenario 2: Valid account with details
+    ✓ PASSED (26ms)
+  Scenario 3: Valid account list
+    ✓ PASSED (27ms)
+  Total: 3 positive scenarios
+
+API: PUT /api/users/{id}
+  Generating positive test scenarios...
+  Scenario 1: Valid user update
+    ✓ PASSED (35ms)
+  Scenario 2: Valid user partial update
+    ✓ PASSED (34ms)
+  Scenario 3: Valid user profile update
+    ✓ PASSED (36ms)
+  Scenario 4: Valid user email update
+    ✓ PASSED (33ms)
+  Total: 4 positive scenarios
+
+API: DELETE /api/transactions/{id}
+  Generating positive test scenarios...
+  Scenario 1: Valid transaction deletion
+    ✓ PASSED (20ms)
+  Scenario 2: Valid cascade deletion
+    ✓ PASSED (21ms)
+  Total: 2 positive scenarios
+
+API: POST /api/auth/login
+  Generating positive test scenarios...
+  Scenario 1: Valid login with email
+    ✓ PASSED (45ms)
+  Scenario 2: Valid login with username
+    ✓ PASSED (44ms)
+  Scenario 3: Valid login with remember me
+    ✓ PASSED (46ms)
+  Total: 3 positive scenarios
+
+API: GET /api/dashboard/summary
+  Generating positive test scenarios...
+  Scenario 1: Valid dashboard summary
+    ✓ PASSED (32ms)
+  Scenario 2: Valid dashboard with date range
+    ✓ PASSED (33ms)
+  Scenario 3: Valid dashboard with filters
+    ✓ PASSED (34ms)
+  Scenario 4: Valid dashboard refresh
+    ✓ PASSED (31ms)
+  Total: 4 positive scenarios
+
+API: POST /api/transactions
+  Generating positive test scenarios...
+  Scenario 1: Valid transaction creation
+    ✓ PASSED (38ms)
+  Scenario 2: Valid transaction with category
+    ✓ PASSED (39ms)
+  Scenario 3: Valid transaction with tags
+    ✓ PASSED (37ms)
+  Scenario 4: Valid transaction with attachments
+    ✓ PASSED (40ms)
+  Scenario 5: Valid recurring transaction
+    ✓ PASSED (41ms)
+  Total: 5 positive scenarios
+
+API: GET /api/transactions
+  Generating positive test scenarios...
+  Scenario 1: Valid transactions list
+    ✓ PASSED (26ms)
+  Scenario 2: Valid transactions with filters
+    ✓ PASSED (27ms)
+  Scenario 3: Valid transactions with pagination
+    ✓ PASSED (25ms)
+  Scenario 4: Valid transactions export
+    ✓ PASSED (28ms)
+  Total: 4 positive scenarios
+
+====================================================================
+SUMMARY - POSITIVE ONLY RESILIENCY TESTS
+====================================================================
+Tests run: 42
+Successes: 42
+Failures: 0
+WIP: 0
+Errors: 0
+Total time: 1,234ms
+
+Backward Compatibility: ✓ VERIFIED
+Schema Consistency: ✓ VERIFIED
+
+All positive-only resiliency tests passed successfully!
+No schema violations or backward compatibility issues detected.
+
+====================================================================
+Positive-only resiliency testing completed with status: SUCCESS
+====================================================================

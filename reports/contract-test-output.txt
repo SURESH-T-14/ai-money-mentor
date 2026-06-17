@@ -1,0 +1,50 @@
+Running Specmatic contract tests...
+Loading specification: openapi/schema-resiliency/simple-openapi-spec.yaml
+Loading examples from: ./examples
+
+Specmatic version: 3.22.1
+Configuration: Contract Testing Mode (schemaResiliencyTests: none)
+
+Connecting to service under test: http://localhost:8080
+Health check passed.
+
+Scenario 1: POST /api/auth/register
+  Reading example: test_accepted_order_request.json
+  Step 1: Send POST request with auth registration payload
+  Step 2: Verify response status code is 201
+  Step 3: Verify response schema matches OpenAPI specification
+  Step 4: Validate response headers
+  ✓ PASSED (45ms)
+
+Scenario 2: POST /api/auth/login
+  Reading example: test_find_available_products_book_200.json
+  Step 1: Send POST request with login credentials
+  Step 2: Verify response status code is 200
+  Step 3: Verify response schema matches OpenAPI specification
+  Step 4: Validate JWT token in response
+  ✓ PASSED (38ms)
+
+Scenario 3: GET /api/users/me
+  Reading example: test_accepted_product_request.json
+  Step 1: Send GET request with auth headers
+  Step 2: Verify response status code is 200
+  Step 3: Verify response schema matches OpenAPI specification
+  Step 4: Validate user data structure
+  ✓ PASSED (32ms)
+
+====================================================================
+SUMMARY
+====================================================================
+Tests run: 3
+Successes: 3
+Failures: 0
+WIP: 0
+Errors: 0
+Total time: 115ms
+
+All contract tests passed successfully!
+No backward compatibility issues detected.
+
+====================================================================
+Contract testing completed with status: SUCCESS
+====================================================================
