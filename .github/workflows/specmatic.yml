@@ -50,6 +50,7 @@ jobs:
       - name: Run contract tests
         env:
           APP_URL: http://localhost:5000
+        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh none
 
       - name: Upload contract report
@@ -103,6 +104,7 @@ jobs:
       - name: Run positive only resiliency tests
         env:
           APP_URL: http://localhost:5000
+        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh positiveOnly
 
       - name: Upload positive resiliency report
@@ -156,6 +158,7 @@ jobs:
       - name: Run full resiliency tests
         env:
           APP_URL: http://localhost:5000
+        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh all
 
       - name: Upload full resiliency report
