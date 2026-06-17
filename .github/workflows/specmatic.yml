@@ -58,9 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: specmatic-contract-report
-          path: |
-            reports/contract-test-report.html
-            reports/contract-test-output.txt
+          path: reports/none/
 
   positive-resiliency-tests:
     name: Positive Resiliency Tests
@@ -112,9 +110,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: specmatic-positive-resiliency-report
-          path: |
-            reports/positive-only-report.html
-            reports/positive-only-output.txt
+          path: reports/positiveOnly/
 
   full-resiliency-tests:
     name: Full Resiliency Tests
@@ -166,6 +162,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: specmatic-full-resiliency-report
-          path: |
-            reports/resiliency-report.html
-            reports/resiliency-output.txt
+          path: reports/all/
