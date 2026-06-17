@@ -16,6 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start backend services
+        working-directory: ./server
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
+        timeout-minutes: 5
+
+      - name: Wait for services to be healthy
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:5000/ 2>/dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+          echo "Backend failed to start"
+          exit 1
+
       - name: Configure Specmatic license
         env:
           SPECMATIC_LICENSE_TEXT: ${{ secrets.SPECMATIC_LICENSE }}
@@ -49,6 +67,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start backend services
+        working-directory: ./server
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
+        timeout-minutes: 5
+
+      - name: Wait for services to be healthy
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:5000/ 2>/dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+          echo "Backend failed to start"
+          exit 1
+
       - name: Configure Specmatic license
         env:
           SPECMATIC_LICENSE_TEXT: ${{ secrets.SPECMATIC_LICENSE }}
@@ -81,6 +117,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Start backend services
+        working-directory: ./server
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
+        timeout-minutes: 5
+
+      - name: Wait for services to be healthy
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:5000/ 2>/dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+          echo "Backend failed to start"
+          exit 1
 
       - name: Configure Specmatic license
         env:
