@@ -48,6 +48,8 @@ jobs:
         run: docker run --rm "$SPECMATIC_IMAGE" --version
 
       - name: Run contract tests
+        env:
+          APP_URL: http://localhost:5000
         run: bash scripts/run-specmatic-mode.sh none
 
       - name: Upload contract report
@@ -99,6 +101,8 @@ jobs:
         run: docker run --rm "$SPECMATIC_IMAGE" --version
 
       - name: Run positive only resiliency tests
+        env:
+          APP_URL: http://localhost:5000
         run: bash scripts/run-specmatic-mode.sh positiveOnly
 
       - name: Upload positive resiliency report
@@ -150,6 +154,8 @@ jobs:
         run: docker run --rm "$SPECMATIC_IMAGE" --version
 
       - name: Run full resiliency tests
+        env:
+          APP_URL: http://localhost:5000
         run: bash scripts/run-specmatic-mode.sh all
 
       - name: Upload full resiliency report
