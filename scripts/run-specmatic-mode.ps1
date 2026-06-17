@@ -127,7 +127,7 @@ $DockerArgs = @(
   "-w",
   "/usr/src/app",
   $SpecmaticImage,
-  "run-suite"
+  "test"
 )
 
 $Output = & docker @DockerArgs 2>&1

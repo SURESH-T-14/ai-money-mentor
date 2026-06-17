@@ -122,7 +122,7 @@ docker run --rm \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \
   -w /usr/src/app \
-  "$SPECMATIC_IMAGE" run-suite 2>&1 | tee "$OUTPUT_FILE"
+  "$SPECMATIC_IMAGE" test 2>&1 | tee "$OUTPUT_FILE"
 DOCKER_STATUS=${PIPESTATUS[0]}
 set -e
 
