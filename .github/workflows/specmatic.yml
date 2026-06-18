@@ -64,7 +64,6 @@ jobs:
         env:
           APP_URL: http://localhost:5000
           COMPOSE_PROJECT_NAME: aimoneymentor
-        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh none
 
       - name: Upload contract report
@@ -130,7 +129,6 @@ jobs:
         env:
           APP_URL: http://localhost:5000
           COMPOSE_PROJECT_NAME: aimoneymentor
-        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh positiveOnly
 
       - name: Upload positive resiliency report
@@ -196,7 +194,6 @@ jobs:
         env:
           APP_URL: http://localhost:5000
           COMPOSE_PROJECT_NAME: aimoneymentor
-        continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh all
 
       - name: Upload full resiliency report
