@@ -72,6 +72,25 @@ Default URLs:
 
 ## 3. Contract Testing
 
+### Quick Start: Global CLI (Recommended)
+
+Run tests from **anywhere** on your system:
+
+```bash
+# Install the global CLI (one-time setup)
+npm link
+
+# Then run tests from any directory
+specmatic-test contract
+specmatic-test resiliency:positive
+specmatic-test resiliency:all
+specmatic-test resiliency
+```
+
+See [GLOBAL_CLI_USAGE.md](GLOBAL_CLI_USAGE.md) for detailed documentation.
+
+### Traditional Method
+
 Contract testing runs with `schemaResiliencyTests: none`. This validates only the contract examples.
 
 From the repository root:
