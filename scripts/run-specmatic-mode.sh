@@ -133,14 +133,24 @@ mkdir -p "$BUILD_DIR"
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
   # In CI, get the docker-compose network name and run Specmatic on the same network
   # The server service is accessible by name instead of localhost
-  NETWORK_NAME="${COMPOSE_PROJECT_NAME:-aimoneymentor}-default"
+  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-aimoneymentor}"
+  NETWORK_NAME="${COMPOSE_PROJECT_NAME}-default"
   APP_URL="http://server:5000"  # Use service name instead of localhost on CI
-  echo "CI environment detected. Using network: $NETWORK_NAME, APP_URL: $APP_URL"
+  echo "CI environment detected. Project: $COMPOSE_PROJECT_NAME, Network: $NETWORK_NAME, APP_URL: $APP_URL"
+  
+  # Verify the network exists
+  if ! docker network ls | grep -q "$NETWORK_NAME"; then
+    echo "ERROR: Docker network $NETWORK_NAME not found!" >&2
+    echo "Available networks:" >&2
+    docker network ls >&2
+    exit 1
+  fi
   
   # Wait for server service to be reachable from container
+  echo "Waiting for server to be reachable on network $NETWORK_NAME..."
   docker run --rm --network "$NETWORK_NAME" \
     --entrypoint sh \
-    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && exit 0; sleep 2; done; echo 'Server not reachable'; exit 1" 2>&1 || true
+    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt $i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1 || true
 fi
 
 set +e

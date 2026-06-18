@@ -18,11 +18,16 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
+          echo "Docker network: $(docker network ls | grep aimoneymentor)"
 
       - name: Wait for services to be healthy
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           echo "Waiting for backend to be healthy..."
           for i in {1..60}; do
@@ -35,8 +40,11 @@ jobs:
             sleep 2
           done
           echo "✗ Backend failed to respond"
-          echo "=== Docker Compose Logs ==="
-          docker compose -f ./server/docker-compose.test.yml logs
+          echo "=== Docker Compose Logs =="
+          docker compose -f ./server/docker-compose.test.yml logs --tail=100
+          echo ""
+          echo "=== Docker Networks ==="
+          docker network ls
           exit 1
 
       - name: Configure Specmatic license
@@ -55,6 +63,7 @@ jobs:
       - name: Run contract tests
         env:
           APP_URL: http://localhost:5000
+          COMPOSE_PROJECT_NAME: aimoneymentor
         continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh none
 
@@ -75,11 +84,16 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
+          echo "Docker network: $(docker network ls | grep aimoneymentor)"
 
       - name: Wait for services to be healthy
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           echo "Waiting for backend to be healthy..."
           for i in {1..60}; do
@@ -92,8 +106,11 @@ jobs:
             sleep 2
           done
           echo "✗ Backend failed to respond"
-          echo "=== Docker Compose Logs ==="
-          docker compose -f ./server/docker-compose.test.yml logs
+          echo "=== Docker Compose Logs =="
+          docker compose -f ./server/docker-compose.test.yml logs --tail=100
+          echo ""
+          echo "=== Docker Networks ==="
+          docker network ls
           exit 1
 
       - name: Configure Specmatic license
@@ -112,6 +129,7 @@ jobs:
       - name: Run positive only resiliency tests
         env:
           APP_URL: http://localhost:5000
+          COMPOSE_PROJECT_NAME: aimoneymentor
         continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh positiveOnly
 
@@ -132,11 +150,16 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
+          echo "Docker network: $(docker network ls | grep aimoneymentor)"
 
       - name: Wait for services to be healthy
+        env:
+          COMPOSE_PROJECT_NAME: aimoneymentor
         run: |
           echo "Waiting for backend to be healthy..."
           for i in {1..60}; do
@@ -149,8 +172,11 @@ jobs:
             sleep 2
           done
           echo "✗ Backend failed to respond"
-          echo "=== Docker Compose Logs ==="
-          docker compose -f ./server/docker-compose.test.yml logs
+          echo "=== Docker Compose Logs =="
+          docker compose -f ./server/docker-compose.test.yml logs --tail=100
+          echo ""
+          echo "=== Docker Networks ==="
+          docker network ls
           exit 1
 
       - name: Configure Specmatic license
@@ -169,6 +195,7 @@ jobs:
       - name: Run full resiliency tests
         env:
           APP_URL: http://localhost:5000
+          COMPOSE_PROJECT_NAME: aimoneymentor
         continue-on-error: true
         run: bash scripts/run-specmatic-mode.sh all
 
