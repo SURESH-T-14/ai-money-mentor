@@ -152,7 +152,7 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
     --dns 8.8.8.8 \
     --dns 8.8.4.4 \
     --entrypoint sh \
-    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt $i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1 || true
+    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt \$i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1 || true
 fi
 
 set +e
