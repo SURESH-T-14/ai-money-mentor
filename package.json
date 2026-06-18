@@ -1,0 +1,28 @@
+{
+  "name": "ai-money-mentor",
+  "version": "1.0.0",
+  "description": "AI Money Mentor - Spec-Driven Development with Specmatic",
+  "main": "index.js",
+  "bin": {
+    "specmatic-test": "./bin/specmatic-test.js"
+  },
+  "scripts": {
+    "test:contract": "cd server && npm run test:contract",
+    "test:resiliency:positive": "cd server && npm run test:resiliency:positive",
+    "test:resiliency:all": "cd server && npm run test:resiliency:all",
+    "test:specmatic": "cd server && npm run test:specmatic"
+  },
+  "keywords": [
+    "api",
+    "testing",
+    "contract-testing",
+    "specmatic",
+    "openapi"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SURESH-T-14/ai-money-mentor.git"
+  }
+}
