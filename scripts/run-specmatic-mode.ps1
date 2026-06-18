@@ -121,12 +121,20 @@ Set-Content -Path (Join-Path $WorkDir "specmatic.yaml") -Value $SpecmaticYaml -E
 Write-Output "Running $ModeLabel with schemaResiliencyTests: $Mode"
 Write-Output "Specmatic image: $SpecmaticImage"
 
+# Set default APP_URL for local development if not already set
+if (-not $env:APP_URL) {
+  $env:APP_URL = "http://localhost:5000"
+  Write-Output "APP_URL not set, using default: $env:APP_URL"
+}
+
 # Create the build directory to capture Specmatic output
 New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
 
 $DockerArgs = @(
   "run",
   "--rm",
+  "-e",
+  "APP_URL=$($env:APP_URL)",
   "-v",
   "$($WorkDir):/usr/src/app"
 ) + $LicenseArgs + @(

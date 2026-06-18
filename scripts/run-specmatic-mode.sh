@@ -120,11 +120,18 @@ fi
 echo "Running $MODE_LABEL with schemaResiliencyTests: $MODE"
 echo "Specmatic image: $SPECMATIC_IMAGE"
 
+# Set default APP_URL for local development if not already set
+if [ -z "${APP_URL:-}" ]; then
+  APP_URL="http://localhost:5000"
+  echo "APP_URL not set, using default: $APP_URL"
+fi
+
 # Create the build directory to capture Specmatic output
 mkdir -p "$BUILD_DIR"
 
 set +e
 docker run --rm \
+  -e APP_URL="$APP_URL" \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \
   -w /usr/src/app \
