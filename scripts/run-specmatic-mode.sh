@@ -131,6 +131,7 @@ mkdir -p "$BUILD_DIR"
 
 set +e
 docker run --rm \
+  --network host \
   -e APP_URL="$APP_URL" \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \

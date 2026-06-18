@@ -18,20 +18,25 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
-        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
-        timeout-minutes: 5
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
         run: |
-          for i in {1..30}; do
-            if curl -f http://localhost:5000/ 2>/dev/null; then
-              echo "Backend is healthy"
+          echo "Waiting for backend to be healthy..."
+          for i in {1..60}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/ 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ Backend is healthy!"
               exit 0
             fi
-            echo "Waiting for backend... ($i/30)"
+            echo "Attempt $i/60: Got HTTP $STATUS, waiting..."
             sleep 2
           done
-          echo "Backend failed to start"
+          echo "✗ Backend failed to respond"
+          echo "=== Docker Compose Logs ==="
+          docker-compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license
@@ -70,20 +75,25 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
-        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
-        timeout-minutes: 5
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
         run: |
-          for i in {1..30}; do
-            if curl -f http://localhost:5000/ 2>/dev/null; then
-              echo "Backend is healthy"
+          echo "Waiting for backend to be healthy..."
+          for i in {1..60}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/ 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ Backend is healthy!"
               exit 0
             fi
-            echo "Waiting for backend... ($i/30)"
+            echo "Attempt $i/60: Got HTTP $STATUS, waiting..."
             sleep 2
           done
-          echo "Backend failed to start"
+          echo "✗ Backend failed to respond"
+          echo "=== Docker Compose Logs ==="
+          docker-compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license
@@ -122,20 +132,25 @@ jobs:
 
       - name: Start backend services
         working-directory: ./server
-        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit &
-        timeout-minutes: 5
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
         run: |
-          for i in {1..30}; do
-            if curl -f http://localhost:5000/ 2>/dev/null; then
-              echo "Backend is healthy"
+          echo "Waiting for backend to be healthy..."
+          for i in {1..60}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/ 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ Backend is healthy!"
               exit 0
             fi
-            echo "Waiting for backend... ($i/30)"
+            echo "Attempt $i/60: Got HTTP $STATUS, waiting..."
             sleep 2
           done
-          echo "Backend failed to start"
+          echo "✗ Backend failed to respond"
+          echo "=== Docker Compose Logs ==="
+          docker-compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license

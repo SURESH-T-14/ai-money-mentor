@@ -133,6 +133,8 @@ New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
 $DockerArgs = @(
   "run",
   "--rm",
+  "--network",
+  "host",
   "-e",
   "APP_URL=$($env:APP_URL)",
   "-v",
