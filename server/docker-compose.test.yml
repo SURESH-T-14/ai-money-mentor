@@ -1,9 +1,17 @@
 version: '3.8'
 
+networks:
+  test_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
+
 services:
   mongodb:
     image: mongo:7
     container_name: aimoneymentor_db
+    networks:
+      - test_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -22,6 +30,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: aimoneymentor_server
+    networks:
+      - test_network
     environment:
       MONGO_URI: mongodb://admin:password@mongodb:27017/aimoneymentor?authSource=admin
       PORT: 5000
@@ -39,3 +49,7 @@ services:
 
 volumes:
   mongo_data:
+
+networks:
+  test_network:
+    driver: bridge

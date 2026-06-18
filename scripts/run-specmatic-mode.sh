@@ -134,7 +134,7 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
   # In CI, get the docker-compose network name and run Specmatic on the same network
   # The server service is accessible by name instead of localhost
   COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-aimoneymentor}"
-  NETWORK_NAME="${COMPOSE_PROJECT_NAME}-default"
+  NETWORK_NAME="${COMPOSE_PROJECT_NAME}_test_network"
   APP_URL="http://server:5000"  # Use service name instead of localhost on CI
   echo "CI environment detected. Project: $COMPOSE_PROJECT_NAME, Network: $NETWORK_NAME, APP_URL: $APP_URL"
   
@@ -149,6 +149,8 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
   # Wait for server service to be reachable from container
   echo "Waiting for server to be reachable on network $NETWORK_NAME..."
   docker run --rm --network "$NETWORK_NAME" \
+    --dns 8.8.8.8 \
+    --dns 8.8.4.4 \
     --entrypoint sh \
     "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt $i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1 || true
 fi
@@ -156,13 +158,22 @@ fi
 set +e
 docker run --rm \
   --network "${NETWORK_NAME:-host}" \
+  --dns 8.8.8.8 \
+  --dns 8.8.4.4 \
   -e APP_URL="$APP_URL" \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \
   -w /usr/src/app \
-  "$SPECMATIC_IMAGE" test 2>&1
+  "$SPECMATIC_IMAGE" test 2>&1 | tee "$WORK_DIR/specmatic-output.log"
 DOCKER_STATUS=$?
 set -e
+
+echo ""
+echo "Specmatic output saved to: $WORK_DIR/specmatic-output.log"
+if [ -f "$WORK_DIR/specmatic-output.log" ]; then
+  echo "Last 50 lines of output:"
+  tail -50 "$WORK_DIR/specmatic-output.log"
+fi
 
 echo ""
 echo "Docker exit status: $DOCKER_STATUS"
