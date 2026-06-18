@@ -19,7 +19,7 @@ jobs:
       - name: Start backend services
         working-directory: ./server
         run: |
-          docker-compose -f docker-compose.test.yml up -d
+          docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
@@ -36,7 +36,7 @@ jobs:
           done
           echo "✗ Backend failed to respond"
           echo "=== Docker Compose Logs ==="
-          docker-compose -f ./server/docker-compose.test.yml logs
+          docker compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license
@@ -76,7 +76,7 @@ jobs:
       - name: Start backend services
         working-directory: ./server
         run: |
-          docker-compose -f docker-compose.test.yml up -d
+          docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
@@ -93,7 +93,7 @@ jobs:
           done
           echo "✗ Backend failed to respond"
           echo "=== Docker Compose Logs ==="
-          docker-compose -f ./server/docker-compose.test.yml logs
+          docker compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license
@@ -133,7 +133,7 @@ jobs:
       - name: Start backend services
         working-directory: ./server
         run: |
-          docker-compose -f docker-compose.test.yml up -d
+          docker compose -f docker-compose.test.yml up -d
           echo "Containers started, waiting for readiness..."
 
       - name: Wait for services to be healthy
@@ -150,7 +150,7 @@ jobs:
           done
           echo "✗ Backend failed to respond"
           echo "=== Docker Compose Logs ==="
-          docker-compose -f ./server/docker-compose.test.yml logs
+          docker compose -f ./server/docker-compose.test.yml logs
           exit 1
 
       - name: Configure Specmatic license
