@@ -129,9 +129,23 @@ fi
 # Create the build directory to capture Specmatic output
 mkdir -p "$BUILD_DIR"
 
+# Check if we're in a CI environment (GitHub Actions)
+if [ -n "${GITHUB_ACTIONS:-}" ]; then
+  # In CI, get the docker-compose network name and run Specmatic on the same network
+  # The server service is accessible by name instead of localhost
+  NETWORK_NAME="${COMPOSE_PROJECT_NAME:-aimoneymentor}-default"
+  APP_URL="http://server:5000"  # Use service name instead of localhost on CI
+  echo "CI environment detected. Using network: $NETWORK_NAME, APP_URL: $APP_URL"
+  
+  # Wait for server service to be reachable from container
+  docker run --rm --network "$NETWORK_NAME" \
+    --entrypoint sh \
+    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && exit 0; sleep 2; done; echo 'Server not reachable'; exit 1" 2>&1 || true
+fi
+
 set +e
 docker run --rm \
-  --network host \
+  --network "${NETWORK_NAME:-host}" \
   -e APP_URL="$APP_URL" \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \
