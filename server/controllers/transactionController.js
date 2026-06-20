@@ -162,6 +162,7 @@ exports.getTransactions = async (req, res) => {
     ]);
 
     res.json({
+      success: true,
       data: transactions,
       page,
       limit,
@@ -188,7 +189,7 @@ exports.addTransaction = async (req, res) => {
     });
 
     const transaction = await newTransaction.save();
-    res.status(201).json(transaction);
+    res.status(201).json({ success: true, transaction });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server error' });
@@ -222,7 +223,7 @@ exports.updateTransaction = async (req, res) => {
       return res.status(404).json({ msg: 'Transaction not found' });
     }
 
-    return res.json(transaction);
+    return res.json({ success: true, transaction });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
@@ -242,7 +243,7 @@ exports.deleteTransaction = async (req, res) => {
     }
 
     await Transaction.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Transaction removed' });
+    res.json({ success: true, message: 'Transaction deleted' });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server error' });

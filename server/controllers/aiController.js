@@ -100,7 +100,7 @@ exports.chat = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid message' });
     }
     if (!isOnTopic(message)) {
-      return res.json({ reply: 'I can only help with money management, budgeting, expenses, goals, investments, and related financial topics. Please rephrase with a financial focus.' });
+      return res.json({ success: true, reply: 'I can only help with money management, budgeting, expenses, goals, investments, and related financial topics. Please rephrase with a financial focus.' });
     }
 
     // Load user-specific data from DB
@@ -133,7 +133,7 @@ exports.chat = async (req, res) => {
   const llm = await callLLMIfEnabled(message, snapshot);
   const reply = llm ? `${ruleBased}\n\nAI Perspective:\n${llm}` : ruleBased;
 
-    res.json({ reply });
+    res.json({ success: true, reply });
   } catch (e) {
     console.error(e);
     res.status(500).json({ msg: 'Server error generating advice' });

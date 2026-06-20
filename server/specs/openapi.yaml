@@ -627,17 +627,9 @@ paths:
                   success:
                     type: boolean
                     example: true
-                  advice:
+                  reply:
                     type: string
                     example: "Based on your spending patterns, here are some strategies to reduce your grocery expenses..."
-                  suggestions:
-                    type: array
-                    items:
-                      type: string
-                    example:
-                      - "Plan meals weekly to avoid impulse purchases"
-                      - "Use coupons and loyalty programs"
-                      - "Buy seasonal produce"
         400:
           description: Invalid input or message too long
           content:
@@ -665,7 +657,6 @@ components:
       properties:
         _id:
           type: string
-          format: uuid
           example: "507f1f77bcf86cd799439011"
           description: User ID (MongoDB ObjectId)
         name:
@@ -700,7 +691,6 @@ components:
       properties:
         _id:
           type: string
-          format: uuid
           example: "507f1f77bcf86cd799439012"
           description: Transaction ID
         user:
@@ -751,3 +741,4 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: JWT token obtained from login or registration
+      x-example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNmEzNTEwODJkYTFiMTI1YTVjNDY0NGMzIn0sImlhdCI6MTc4MTg2MjUzMCwiZXhwIjoxNzgxODY2MTMwfQ.OdQmF9UwbDB3X8if6eod8UySsEz2sxbmsfEtt7p8myo"

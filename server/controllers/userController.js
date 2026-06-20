@@ -6,7 +6,7 @@ const STATUSES = ['active', 'inactive'];
 
 function sanitizeUser(user) {
   return {
-    id: user.id,
+    _id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,
@@ -22,7 +22,7 @@ exports.getMyProfile = async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    return res.json(sanitizeUser(user));
+    return res.json({ success: true, user: sanitizeUser(user) });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
@@ -32,7 +32,7 @@ exports.getMyProfile = async (req, res) => {
 exports.listUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
-    return res.json(users.map(sanitizeUser));
+    return res.json({ success: true, users: users.map(sanitizeUser) });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
@@ -75,7 +75,7 @@ exports.createUser = async (req, res) => {
       status: status || 'active'
     });
 
-    return res.status(201).json(sanitizeUser(user));
+    return res.status(201).json({ success: true, user: sanitizeUser(user) });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
@@ -120,7 +120,7 @@ exports.updateUser = async (req, res) => {
     }
 
     await user.save();
-    return res.json(sanitizeUser(user));
+    return res.json({ success: true, user: sanitizeUser(user) });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
