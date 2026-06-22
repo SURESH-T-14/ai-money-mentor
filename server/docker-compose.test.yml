@@ -1,0 +1,51 @@
+version: '3.8'
+
+networks:
+  test_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: aimoneymentor_db
+    networks:
+      - test_network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aimoneymentor_server
+    networks:
+      - test_network
+    environment:
+      MONGO_URI: mongodb://admin:password@mongodb:27017/aimoneymentor?authSource=admin
+      PORT: 5000
+      NODE_ENV: test
+    ports:
+      - "5000:5000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:5000/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:

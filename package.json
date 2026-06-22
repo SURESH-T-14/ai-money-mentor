@@ -1,0 +1,14 @@
+{
+  "name": "ai-money-mentor-v2",
+  "version": "1.0.0",
+  "description": "AI Money Mentor v2 - Rebuilt from scratch for full contract test compliance",
+  "scripts": {
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev",
+    "test:contract": "cd server && npm run test:contract",
+    "test:resiliency:positive": "cd server && npm run test:resiliency:positive",
+    "test:resiliency:all": "cd server && npm run test:resiliency:all"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
