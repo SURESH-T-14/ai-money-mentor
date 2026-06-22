@@ -35,6 +35,19 @@ if (!fs.existsSync(workDir)) {
   console.log(`Created directory: ${workDir}`);
 }
 
+// Ensure necessary files exist in work directory
+const openApiSrc = path.resolve(repoRoot, 'server', 'specs', 'openapi.yaml');
+const openApiDest = path.resolve(workDir, 'openapi.yaml');
+
+if (!fs.existsSync(openApiDest)) {
+  if (fs.existsSync(openApiSrc)) {
+    fs.copyFileSync(openApiSrc, openApiDest);
+    console.log(`Copied openapi.yaml to work directory`);
+  } else {
+    console.warn(`Warning: openapi.yaml not found at ${openApiSrc}`);
+  }
+}
+
 // Determine APP_URL based on environment
 let appUrl = process.env.APP_URL;
 let networkName = 'host';
