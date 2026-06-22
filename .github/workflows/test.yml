@@ -33,15 +33,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Node.js
+      - name: Set up Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '18.20.0'
       
-      - name: Install dependencies
+      - name: Install server dependencies
         working-directory: ./server
-        run: npm install
+        run: npm ci
       
       - name: Start API Server
         working-directory: ./server
@@ -49,8 +48,8 @@ jobs:
           PORT=5000 \
           NODE_ENV=test \
           MONGODB_URI=mongodb://admin:password@localhost:27017/aimoneymentor?authSource=admin \
-          npm start &
-          sleep 5
+          node server.js &
+          sleep 8
       
       - name: Run Contract Tests
         working-directory: ./server
@@ -61,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: contract-test-reports
-          path: reports/none/
+          path: server/build/reports/specmatic/test/
           retention-days: 30
 
   positive-resiliency-tests:
@@ -86,15 +85,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Node.js
+      - name: Set up Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '18.20.0'
       
-      - name: Install dependencies
+      - name: Install server dependencies
         working-directory: ./server
-        run: npm install
+        run: npm ci
       
       - name: Start API Server
         working-directory: ./server
@@ -102,8 +100,8 @@ jobs:
           PORT=5000 \
           NODE_ENV=test \
           MONGODB_URI=mongodb://admin:password@localhost:27017/aimoneymentor?authSource=admin \
-          npm start &
-          sleep 5
+          node server.js &
+          sleep 8
       
       - name: Run Positive Resiliency Tests
         working-directory: ./server
@@ -114,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: positive-resiliency-reports
-          path: reports/positiveOnly/
+          path: server/build/reports/specmatic/test/
           retention-days: 30
 
   full-resiliency-tests:
@@ -139,15 +137,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Node.js
+      - name: Set up Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '18.20.0'
       
-      - name: Install dependencies
+      - name: Install server dependencies
         working-directory: ./server
-        run: npm install
+        run: npm ci
       
       - name: Start API Server
         working-directory: ./server
@@ -155,8 +152,8 @@ jobs:
           PORT=5000 \
           NODE_ENV=test \
           MONGODB_URI=mongodb://admin:password@localhost:27017/aimoneymentor?authSource=admin \
-          npm start &
-          sleep 5
+          node server.js &
+          sleep 8
       
       - name: Run Full Resiliency Tests
         working-directory: ./server
@@ -167,7 +164,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: full-resiliency-reports
-          path: reports/all/
+          path: server/build/reports/specmatic/test/
           retention-days: 30
 
   test-summary:
