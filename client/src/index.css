@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App base overrides and sensible defaults */
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: theme('colors.slate.50');
+    color: theme('colors.slate.900');
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace; }
+}
+
+/* Small utilities added via App.css as well */

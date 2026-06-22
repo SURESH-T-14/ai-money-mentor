@@ -1,0 +1,1358 @@
+import React, { useState, useEffect, createContext, useContext, useMemo, useRef } from 'react';
+import api from './utils/api';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { 
+  LayoutDashboard, 
+  CreditCard, 
+  DollarSign, 
+  Settings, 
+  UserPlus, 
+  LogIn, 
+  LogOut, 
+  ChevronDown,
+  PlusCircle,
+  TrendingUp,
+  Target,
+  Zap,
+  Trash2
+} from 'lucide-react';
+
+// --- Shadcn/UI Component Recreations (using Tailwind) 
+// We recreate the style of shadcn/ui components since we can't install them in a single file.
+
+const cn = (...classes) => classes.filter(Boolean).join(' ');
+
+// Load Google Identity Services script
+const loadGoogleScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      resolve();
+      return;
+    }
+    const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', reject);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+};
+
+// Minimal JWT decoder for Google credential (base64url only; NOT verifying signature)
+const decodeJwt = (token) => {
+  try {
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+};
+
+// Currency formatter (INR)
+const formatCurrency = (value) => {
+  try {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
+  } catch (e) {
+    return `₹${Number(value).toFixed(2)}`;
+  }
+};
+
+// Button
+const Button = React.forwardRef(({ className, variant = 'default', size = 'default', ...props }, ref) => {
+  const variants = {
+    default: 'bg-slate-900 text-white hover:bg-slate-900/90',
+    destructive: 'bg-red-600 text-white hover:bg-red-600/90',
+    outline: 'border border-slate-200 hover:bg-slate-100',
+    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-100/80',
+    ghost: 'hover:bg-slate-100',
+    link: 'text-slate-900 underline-offset-4 hover:underline',
+  };
+  const sizes = {
+    default: 'h-10 px-4 py-2',
+    sm: 'h-9 rounded-md px-3',
+    lg: 'h-11 rounded-md px-8',
+    icon: 'h-10 w-10',
+  };
+  return (
+    <button
+      className={cn(
+        'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        variants[variant],
+        sizes[size],
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  );
+});
+
+// Input
+const Input = React.forwardRef(({ className, type, ...props }, ref) => {
+  return (
+    <input
+      type={type}
+      className={cn(
+        'flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  );
+});
+
+// Label
+const Label = React.forwardRef(({ className, ...props }, ref) => (
+  <label
+    ref={ref}
+    className={cn('text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70', className)}
+    {...props}
+  />
+));
+
+// Card Components
+const Card = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('rounded-lg border border-slate-200 bg-white text-slate-950 shadow-sm', className)}
+    {...props}
+  />
+));
+
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+));
+
+const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
+  <h3 ref={ref} className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props}>
+    {children}
+  </h3>
+));
+
+const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <p ref={ref} className={cn('text-sm text-slate-500', className)} {...props} />
+));
+
+const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+));
+
+const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+));
+
+// Select Components
+const Select = ({ children, onValueChange, value }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState(value);
+  const selectRef = React.useRef(null);
+
+  useEffect(() => {
+    setSelectedValue(value);
+  }, [value]);
+
+  const handleValueChange = (val) => {
+    setSelectedValue(val);
+    if (onValueChange) {
+      onValueChange(val);
+    }
+    setIsOpen(false);
+  };
+  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectRef]);
+
+  return (
+    <div className="relative" ref={selectRef}>
+      <SelectTrigger onClick={() => setIsOpen(!isOpen)}>
+        <SelectValue placeholder="Select a category">
+          {selectedValue ? selectedValue : "Select a category"}
+        </SelectValue>
+      </SelectTrigger>
+      {isOpen && (
+        <SelectContent>
+          {React.Children.map(children, (child) =>
+            React.cloneElement(child, { onSelect: handleValueChange })
+          )}
+        </SelectContent>
+      )}
+    </div>
+  );
+};
+
+const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => (
+  <button
+    ref={ref}
+    className={cn(
+      'flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronDown className="h-4 w-4 opacity-50" />
+  </button>
+));
+
+const SelectValue = ({ children }) => <span>{children}</span>;
+
+const SelectContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white p-1 shadow-md',
+      className
+    )}
+    {...props}
+  />
+));
+
+const SelectItem = React.forwardRef(({ className, children, value, onSelect, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 focus:bg-slate-100',
+      className
+    )}
+    onClick={() => onSelect(value)}
+    {...props}
+  >
+    {children}
+  </div>
+));
+
+// --- Mock Data --- 
+const MOCK_USER = {
+  id: 'u1',
+  name: 'Satoshi Mehta',
+  email: 'satoshimehta@example.com',
+};
+
+const MOCK_TRANSACTIONS = [
+  { id: 't1', date: '2025-10-30', description: 'Coffee Shop', amount: 5.75, category: 'Food' },
+  { id: 't2', date: '2025-10-29', description: 'Monthly Pass', amount: 65.00, category: 'Transport' },
+  { id: 't3', date: '2025-10-28', description: 'Netflix', amount: 15.99, category: 'Entertainment' },
+  { id: 't4', date: '2025-10-28', description: 'Groceries', amount: 120.50, category: 'Food' },
+  { id: 't5', date: '2025-10-27', description: 'Dinner Out', amount: 75.20, category: 'Food' },
+  { id: 't6', date: '2025-10-26', description: 'Gasoline', amount: 55.00, category: 'Transport' },
+  { id: 't7', date: '2025-10-25', description: 'Movie Tickets', amount: 30.00, category: 'Entertainment' },
+];
+
+const MOCK_BUDGETS = {
+  Food: { goal: 400, spent: 201.45 },
+  Transport: { goal: 150, spent: 120.00 },
+  Entertainment: { goal: 100, spent: 45.99 },
+};
+
+const MOCK_AI_INSIGHT = {
+  id: 'ins1',
+  title: "Food Spending Alert!",
+  suggestion: "You've spent ₹201.45 on Food this month, which is 50% of your ₹400 budget. Try reducing dining out by 10% to stay on track."
+};
+
+const MOCK_AI_INSIGHTS = [
+  MOCK_AI_INSIGHT,
+  { id: 'ins2', title: 'Transport Trend', suggestion: "Transport costs increased 20% vs last month. Consider checking ride shares or monthly passes." },
+  { id: 'ins3', title: 'Savings Opportunity', suggestion: 'You have subscriptions you haven\'t used this month. Review and cancel unused services to save money.' }
+];
+
+const CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Health', 'Other'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF00FF'];
+
+// --- Auth Context ---
+const AuthContext = createContext(null);
+
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Real login via API
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      const { token, user } = res.data || {};
+      if (!token || !user) throw new Error('Invalid login response');
+      try { localStorage.setItem('token', token); } catch (e) {}
+      setUser(user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      const msg = e?.response?.data?.msg || 'Invalid email or password';
+      setError(msg);
+      setLoading(false);
+      return false;
+    }
+  };
+
+  // Real register via API
+  const register = async (name, email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.post('/auth/register', { name, email, password });
+      const { token, user } = res.data || {};
+      if (!token || !user) throw new Error('Invalid register response');
+      try { localStorage.setItem('token', token); } catch (e) {}
+      setUser(user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      const msg = e?.response?.data?.msg || 'Registration failed';
+      setError(msg);
+      setLoading(false);
+      return false;
+    }
+  };
+
+  // Mock Logout
+  const logout = () => {
+    try { localStorage.removeItem('token'); } catch (e) {}
+    setUser(null);
+  };
+
+  // Google login using backend verification
+  const loginWithGoogleCredential = async (credential) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.msg || 'Google auth failed');
+      }
+      const data = await res.json();
+      if (data.token) {
+        try { localStorage.setItem('token', data.token); } catch (e) {}
+      }
+      if (data.user) setUser(data.user);
+      setLoading(false);
+      return true;
+    } catch (e) {
+      setError(e.message || 'Google sign-in failed.');
+      setLoading(false);
+      return false;
+    }
+  };
+
+  const value = { user, loading, error, login, register, logout, loginWithGoogleCredential };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+const useAuth = () => useContext(AuthContext);
+
+// --- Data Context (Mocking API calls) ---
+const DataContext = createContext(null);
+
+const DataProvider = ({ children }) => {
+  const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS);
+  const [budgets, setBudgets] = useState(MOCK_BUDGETS);
+  const [insights, setInsights] = useState(MOCK_AI_INSIGHTS);
+  const [investments, setInvestments] = useState(() => {
+    try {
+      const raw = localStorage.getItem('aim_investments');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Recalculate budget 'spent' based on transactions
+  useEffect(() => {
+    setBudgets(prevBudgets => {
+      const newBudgets = JSON.parse(JSON.stringify(prevBudgets)); // Deep copy
+      // Reset spent
+      for (const category in newBudgets) {
+        newBudgets[category].spent = 0;
+      }
+      // Recalculate
+      transactions.forEach(t => {
+        if (newBudgets[t.category]) {
+          newBudgets[t.category].spent += t.amount;
+        } else {
+          // If category exists in transaction but not budget, create it
+          if(!newBudgets[t.category]) {
+            newBudgets[t.category] = { goal: 0, spent: t.amount };
+          }
+        }
+      });
+      return newBudgets;
+    });
+  }, [transactions]);
+
+  // Insights management (mocked)
+  const addInsight = (title, suggestion) => {
+    setInsights(prev => [{ id: `ins${Math.random().toString(36).slice(2,8)}`, title, suggestion }, ...prev]);
+  };
+
+  const addTransaction = (transaction) => {
+    setLoading(true);
+    // Mock API call
+    setTimeout(() => {
+      const newTransaction = { ...transaction, id: `t${Math.random()}` };
+      setTransactions(prev => [newTransaction, ...prev]);
+      setLoading(false);
+    }, 500);
+  };
+  
+  const deleteTransaction = (id) => {
+    setLoading(true);
+    // Mock API call
+    setTimeout(() => {
+      setTransactions(prev => prev.filter(t => t.id !== id));
+      setLoading(false);
+    }, 500);
+  };
+  // Add or update goals for budgets
+  const addGoal = (category, goalAmount) => {
+    setLoading(true);
+    setTimeout(() => {
+      setBudgets(prev => {
+        const existing = prev[category] || { goal: 0, spent: 0 };
+        return { ...prev, [category]: { ...existing, goal: Number(goalAmount) } };
+      });
+      setLoading(false);
+    }, 300);
+  };
+
+  const updateGoal = (category, goalAmount) => {
+    // For this mock, update is same as addGoal
+    addGoal(category, goalAmount);
+  };
+
+  const deleteGoal = (category) => {
+    // "Delete" a goal by setting it to 0 (keeps spent intact so history remains)
+    setLoading(true);
+    setTimeout(() => {
+      setBudgets(prev => {
+        const existing = prev[category] || { goal: 0, spent: 0 };
+        return { ...prev, [category]: { ...existing, goal: 0 } };
+      });
+      setLoading(false);
+    }, 200);
+  };
+
+  // Investments management (persisted to localStorage)
+  useEffect(() => {
+    try {
+      localStorage.setItem('aim_investments', JSON.stringify(investments));
+    } catch (e) {
+      // ignore
+    }
+  }, [investments]);
+
+  const addInvestment = ({ name, value }) => {
+    setLoading(true);
+    setTimeout(() => {
+      const inv = { id: `i${Math.random().toString(36).slice(2,9)}`, name, value: Number(value) };
+      setInvestments(prev => [inv, ...prev]);
+      setLoading(false);
+    }, 300);
+  };
+
+  const deleteInvestment = (id) => {
+    setLoading(true);
+    setTimeout(() => {
+      setInvestments(prev => prev.filter(i => i.id !== id));
+      setLoading(false);
+    }, 200);
+  };
+  
+  const value = { transactions, budgets, insights, loading, addTransaction, deleteTransaction, addGoal, updateGoal, deleteGoal, investments, addInvestment, deleteInvestment, addInsight };
+  
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+};
+
+const useData = () => useContext(DataContext);
+
+
+// --- Pages --- 
+
+// Auth Page (Login / Register)
+function AuthPage({ setPage }) {
+  const [isLogin, setIsLogin] = useState(true);
+  
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="background-container bg-login"></div>
+      <Card className="w-full max-w-md bg-white/95">
+        <CardHeader>
+          <div className="flex justify-center mb-4">
+            <img src="/images/logo.png" alt="AI Money Mentor Logo" className="w-24 h-24" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center">
+            {isLogin ? 'Welcome Back!' : 'Create Account'}
+          </CardTitle>
+          <CardDescription className="text-center">
+            {isLogin ? 'Sign in to access your dashboard.' : 'Enter your details to get started.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLogin ? <LoginForm setPage={setPage} /> : <RegisterForm setPage={setPage} />}
+        </CardContent>
+        <CardFooter className="flex-col">
+          <Button variant="link" onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+function LoginForm({ setPage }) {
+  const [email, setEmail] = useState('test@example.com');
+  const [password, setPassword] = useState('password123');
+  const { login, loading, error, loginWithGoogleCredential } = useAuth();
+  const googleDivRef = useRef(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = await login(email, password);
+    if (success) {
+      setPage('dashboard');
+    }
+  };
+
+  // Initialize Google button
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    let cancelled = false;
+    if (!clientId) return; // Hide if not configured
+    loadGoogleScript()
+      .then(() => {
+        if (cancelled) return;
+        /* global google */
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            const ok = await loginWithGoogleCredential(response.credential);
+            if (ok) setPage('dashboard');
+          },
+        });
+        if (googleDivRef.current) {
+          window.google.accounts.id.renderButton(googleDivRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: 320,
+            type: 'standard',
+            text: 'continue_with',
+            shape: 'rectangular',
+          });
+        }
+      })
+      .catch(() => {/* ignore */});
+    return () => { cancelled = true; };
+  }, [loginWithGoogleCredential, setPage]);
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Signing In...' : 'Sign In'}
+      </Button>
+      {/* Google Sign-In */}
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID ? (
+        <div className="pt-2 flex flex-col items-center">
+          <div ref={googleDivRef} />
+        </div>
+      ) : (
+        <p className="text-xs text-slate-500 text-center">To enable Google Sign-In, set REACT_APP_GOOGLE_CLIENT_ID in the client env.</p>
+      )}
+    </form>
+  );
+}
+
+function RegisterForm({ setPage }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { register, loading, error, loginWithGoogleCredential } = useAuth();
+  const googleDivRef = useRef(null);
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = await register(name, email, password);
+    if (success) {
+      setPage('dashboard');
+    }
+  };
+
+  // Initialize Google button (re-use same flow as login; this acts as Sign up)
+  useEffect(() => {
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    let cancelled = false;
+    if (!clientId) return;
+    loadGoogleScript()
+      .then(() => {
+        if (cancelled) return;
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            const ok = await loginWithGoogleCredential(response.credential);
+            if (ok) setPage('dashboard');
+          },
+        });
+        if (googleDivRef.current) {
+          window.google.accounts.id.renderButton(googleDivRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: 320,
+            type: 'standard',
+            text: 'signup_with',
+            shape: 'rectangular',
+          });
+        }
+      })
+      .catch(() => {/* ignore */});
+    return () => { cancelled = true; };
+  }, [loginWithGoogleCredential, setPage]);
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input id="name" placeholder="Satoshi Mehta" value={name} onChange={(e) => setName(e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      </div>
+       {error && <p className="text-sm text-red-600">{error}</p>}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Creating Account...' : 'Create Account'}
+      </Button>
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID ? (
+        <div className="pt-2 flex flex-col items-center">
+          <div ref={googleDivRef} />
+        </div>
+      ) : (
+        <p className="text-xs text-slate-500 text-center">To enable Google Sign-Up, set REACT_APP_GOOGLE_CLIENT_ID in the client env.</p>
+      )}
+    </form>
+  );
+}
+
+// Main Application Layout
+function AppLayout({ page, setPage }) {
+  const { user, logout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
+    setPage('login');
+  };
+
+  return (
+    <div className="flex min-h-screen w-full">
+      {/* Background Container */}
+      <div className={`background-container ${
+        page === 'dashboard' ? 'bg-dashboard' :
+        page === 'transactions' ? 'bg-transactions' :
+        page === 'investments' ? 'bg-investments' :
+        page === 'goals' ? 'bg-goals' :
+        page === 'advisor' ? 'bg-dashboard' : ''
+      }`}></div>
+
+      {/* Sidebar Navigation */}
+      <aside className="hidden w-64 flex-col border-r bg-gradient-to-b from-gray-800 to-gray-900 backdrop-blur-sm p-4 sm:flex">
+        <div className="flex items-center mb-8">
+          <img src="/images/logo.png" alt="AI Money Mentor Logo" className="w-8 h-8 mr-2" />
+          <h1 className="text-2xl font-bold text-white">AI Money Mentor</h1>
+        </div>
+        <nav className="flex flex-col space-y-2">
+          <Button
+            variant={page === 'dashboard' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'dashboard' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('dashboard')}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+          </Button>
+          <Button
+            variant={page === 'transactions' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'transactions' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('transactions')}
+          >
+            <CreditCard className="mr-2 h-4 w-4" /> Transactions
+          </Button>
+          <Button
+            variant={page === 'investments' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'investments' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('investments')}
+          >
+            <TrendingUp className="mr-2 h-4 w-4" /> Investments
+          </Button>
+          <Button
+            variant={page === 'goals' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'goals' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('goals')}
+          >
+            <Target className="mr-2 h-4 w-4" /> Goals
+          </Button>
+          <Button
+            variant={page === 'advisor' ? 'secondary' : 'ghost'}
+            className={`justify-start text-white hover:bg-teal-600/20 ${page === 'advisor' ? 'bg-teal-600/30' : ''}`}
+            onClick={() => setPage('advisor')}
+          >
+            <Zap className="mr-2 h-4 w-4" /> Advisor
+          </Button>
+        </nav>
+        <div className="mt-auto flex flex-col space-y-2">
+           <div className="p-2 text-sm text-gray-300">
+            <p className="font-medium">{user.name}</p>
+            <p className="text-xs text-gray-400">{user.email}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            className="justify-start text-white border-gray-600 hover:bg-gray-700 hover:text-teal-400" 
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Logout
+          </Button>
+        </div>
+      </aside>
+      
+      {/* Main Content */}
+      
+      {/* Main Content */}
+      
+      {/* Main Content */}
+      <main className="flex-1 p-4 sm:p-8">
+        <div className="bg-gray/95 backdrop-blur-sm rounded-lg p-6 min-h-full">
+          {page === 'dashboard' && <DashboardPage />}
+          {page === 'transactions' && <TransactionsPage />}
+          {page === 'investments' && <InvestmentsPage />}
+          {page === 'goals' && <GoalsPage />}
+          {page === 'advisor' && <ChatPage />}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// Simple modal component
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-2xl rounded-md bg-white p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </div>
+        <div className="mt-4">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+
+// Dashboard Page
+function DashboardPage() {
+  const { budgets, transactions, insights } = useData();
+  const { user } = useAuth();
+  const [showInsights, setShowInsights] = useState(false);
+
+  const firstInsight = insights && insights.length ? insights[0] : null;
+
+  const totalSpent = useMemo(() => 
+    transactions.reduce((acc, t) => acc + t.amount, 0),
+  [transactions]);
+  
+  const totalBudget = useMemo(() =>
+    Object.values(budgets).reduce((acc, b) => acc + b.goal, 0),
+  [budgets]);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <h2 className="text-3xl font-bold text-white-900">Welcome back, {user.name.split(' ')[0]}!</h2>
+      
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-slate-500">Total Spent (Oct)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{formatCurrency(totalSpent)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-slate-500">Total Budget (Oct)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{formatCurrency(totalBudget)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-slate-500">Remaining Budget</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-green-600">{formatCurrency(totalBudget - totalSpent)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts & Insights */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Spending Chart */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Spending by Category</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[350px]">
+            <ExpenseChart />
+          </CardContent>
+        </Card>
+        
+        {/* AI Advisor */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Zap className="mr-2 h-5 w-5 text-yellow-500" />
+              AI Advisor
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {firstInsight ? (
+               <>
+                 <p className="text-lg font-semibold">{firstInsight.title}</p>
+                 <p className="text-sm text-slate-600">{firstInsight.suggestion}</p>
+               </>
+             ) : (
+               <p className="text-sm text-slate-500">No insights yet.</p>
+             )}
+             <Button variant="outline" className="w-full" onClick={() => setShowInsights(true)}>
+               See All Insights
+             </Button>
+             {showInsights && (
+               <Modal title="AI Insights" onClose={() => setShowInsights(false)}>
+                 <div className="space-y-4">
+                   {insights.map(ins => (
+                     <div key={ins.id} className="rounded-md border p-3">
+                       <p className="font-semibold">{ins.title}</p>
+                       <p className="text-sm text-slate-600">{ins.suggestion}</p>
+                     </div>
+                   ))}
+                 </div>
+               </Modal>
+             )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Budget Goals */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Budget Goals</CardTitle>
+          <CardDescription>Your monthly spending goals.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {Object.entries(budgets).map(([category, data]) => (
+            <BudgetTracker key={category} category={category} spent={data.spent} goal={data.goal} />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function BudgetTracker({ category, spent, goal }) {
+  const percentage = goal > 0 ? (spent / goal) * 100 : 0;
+  let progressBarColor = 'bg-blue-600';
+  if (percentage > 90) progressBarColor = 'bg-red-600';
+  else if (percentage > 75) progressBarColor = 'bg-yellow-500';
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm font-medium">
+        <span className="text-slate-700">{category}</span>
+        <span className="text-slate-500">
+          {formatCurrency(spent)} / <span className="text-slate-700">{formatCurrency(goal)}</span>
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-slate-200">
+        <div
+          className={cn('h-2 rounded-full transition-all duration-500', progressBarColor)}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ExpenseChart() {
+  const { transactions } = useData();
+
+  const data = useMemo(() => {
+    const categoryTotals = transactions.reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {});
+    
+    return Object.entries(categoryTotals).map(([name, value]) => ({ name, value }));
+  }, [transactions]);
+  
+  const categoryColors = useMemo(() => {
+    const colorMap = {};
+    CATEGORIES.forEach((cat, index) => {
+      colorMap[cat] = COLORS[index % COLORS.length];
+    });
+    return colorMap;
+  }, []);
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          outerRadius={120}
+          fill="#8884d8"
+          dataKey="value"
+          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={categoryColors[entry.name] || COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+  <Tooltip formatter={(value) => formatCurrency(value)} />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+
+// Transactions Page
+function TransactionsPage() {
+  const { transactions, addTransaction, deleteTransaction, loading } = useData();
+  
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-slate-900">Transactions</h2>
+        {/* AddTransactionForm will be here, perhaps in a Modal */}
+      </div>
+      
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {transactions.map(t => (
+                  <div key={t.id} className="flex items-center justify-between p-2 rounded-md hover:bg-slate-50">
+                    <div className="flex items-center space-x-3">
+                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                         <CreditCard className="h-5 w-5 text-slate-600" />
+                       </span>
+                       <div>
+                         <p className="font-medium">{t.description}</p>
+                         <p className="text-sm text-slate-500">{t.date} &middot; {t.category}</p>
+                       </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <span className="font-medium">-{formatCurrency(t.amount)}</span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700" onClick={() => deleteTransaction(t.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          <AddTransactionForm />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Simple AI chat page
+function ChatPage() {
+  const [messages, setMessages] = useState([{ role: 'assistant', content: 'Hi! I can help with budgeting, expenses, goals, and investments. Ask me anything money-related.' }]);
+  const [input, setInput] = useState('');
+
+  const sendMessage = async (e) => {
+    e?.preventDefault();
+    const text = input.trim();
+    if (!text) return;
+    const next = [...messages, { role: 'user', content: text }];
+    setMessages(next);
+    setInput('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-auth-token': token || '' },
+        body: JSON.stringify({ message: text, history: next.slice(-6) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || 'Chat error');
+      setMessages(m => [...m, { role: 'assistant', content: data.reply }]);
+    } catch (err) {
+      const serverMsg = err?.message || 'Sorry, I had trouble generating advice.';
+      setMessages(m => [...m, { role: 'assistant', content: serverMsg + ' (Ensure you are logged in; try re-authenticating.)' }]);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      <h2 className="text-3xl font-bold text-slate-900">AI Advisor</h2>
+      <div className="flex-1 min-h-[300px] max-h-[60vh] overflow-auto rounded-md border bg-white p-4 space-y-3">
+        {messages.map((m, idx) => (
+          <div key={idx} className={cn('whitespace-pre-wrap', m.role === 'user' ? 'text-slate-900' : 'text-slate-700')}>
+            <span className={cn('text-xs uppercase font-semibold mr-2', m.role === 'user' ? 'text-teal-600' : 'text-purple-600')}>{m.role}</span>
+            {m.content}
+          </div>
+        ))}
+      </div>
+      <form onSubmit={sendMessage} className="flex gap-2">
+        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about your budget, expenses, goals, or investments..." />
+        <Button type="submit">Send</Button>
+      </form>
+      <p className="text-xs text-slate-500">Note: I only answer financial topics. Off-topic queries will be refused.</p>
+    </div>
+  );
+}
+
+
+// Investments Page (simple placeholder)
+function InvestmentsPage() {
+  const { investments, addInvestment, deleteInvestment } = useData();
+  const [name, setName] = useState('');
+  const [value, setValue] = useState('');
+
+  const total = investments.reduce((acc, i) => acc + Number(i.value || 0), 0);
+
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!name || !value) return;
+    addInvestment({ name, value: Number(value) });
+    setName('');
+    setValue('');
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-slate-900">Investments</h2>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio Overview</CardTitle>
+              <CardDescription>Holdings added by you.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold">{formatCurrency(total)}</p>
+              <div className="mt-4 space-y-2">
+                {investments.length === 0 && (
+                  <p className="text-sm text-slate-500">No investments yet. Use the form to add one.</p>
+                )}
+                {investments.map(inv => (
+                  <div key={inv.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{inv.name}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-slate-700">{formatCurrency(inv.value)}</div>
+                      <Button variant="ghost" size="icon" onClick={() => deleteInvestment(inv.id)}>
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Investment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAdd} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Index Fund" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Value (INR)</Label>
+                  <Input type="number" step="0.01" min="0" value={value} onChange={(e) => setValue(e.target.value)} placeholder="e.g. 10000" />
+                </div>
+                <Button type="submit" className="w-full">Add Investment</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// Goals Page
+function GoalsPage() {
+  const { budgets, addGoal, updateGoal, deleteGoal } = useData();
+  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
+  const [goalAmount, setGoalAmount] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleAddOrUpdate = (e) => {
+    e.preventDefault();
+    if (!selectedCategory || !goalAmount) return;
+    addGoal(selectedCategory, Number(goalAmount));
+    setMessage(`Goal set for ${selectedCategory} to ${formatCurrency(Number(goalAmount))}`);
+    setGoalAmount('');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-slate-900">Goals</h2>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Goals</CardTitle>
+              <CardDescription>Manage monthly spending goals per category.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Object.entries(budgets).map(([category, data]) => (
+                <div key={category} className="flex items-center justify-between p-2 rounded-md hover:bg-slate-50">
+                  <div>
+                    <p className="font-medium">{category}</p>
+                    <p className="text-sm text-slate-500">Spent: {formatCurrency(data.spent)}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="text-slate-700">Goal: {formatCurrency(data.goal)}</div>
+                    <Button
+                      title="Delete goal"
+                      aria-label={`Delete goal for ${category}`}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-600 hover:text-red-700"
+                      onClick={() => deleteGoal(category)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Add / Update Goal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAddOrUpdate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select onValueChange={setSelectedCategory} value={selectedCategory}>
+                    {CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Monthly Goal (INR)</Label>
+                  <Input type="number" step="0.01" min="0" value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} placeholder="e.g. 5000" />
+                </div>
+                <Button type="submit" className="w-full">Set Goal</Button>
+                {message && <p className="text-sm text-green-600">{message}</p>}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddTransactionForm() {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const { addTransaction, loading } = useData();
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!description || !amount || !date || !category) {
+      // Simple validation
+      return;
+    }
+    
+    addTransaction({
+      description,
+      amount: parseFloat(amount),
+      date,
+      category
+    });
+    
+    // Reset form
+    setDescription('');
+    setAmount('');
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Add New Transaction</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Coffee" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount</Label>
+            <Input id="amount" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select onValueChange={setCategory} value={category}>
+              {CATEGORIES.map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </Select>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Adding...' : 'Add Transaction'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+// --- Main App Component ---
+function App() {
+  // 'login', 'register', 'dashboard', 'transactions'
+  const [page, setPage] = useState('login');
+  const { user } = useAuth();
+
+  // Simple router
+  const renderPage = () => {
+    if (!user) {
+      return <AuthPage setPage={setPage} />;
+    }
+    
+    // Protected routes
+    switch (page) {
+      case 'dashboard':
+        return <AppLayout page={page} setPage={setPage} />;
+      case 'transactions':
+        return <AppLayout page={page} setPage={setPage} />;
+      case 'investments':
+        return <AppLayout page={page} setPage={setPage} />;
+      case 'goals':
+        return <AppLayout page={page} setPage={setPage} />;
+      default:
+        // Unknown page — fall back to AppLayout (keeps current page value)
+        return <AppLayout page={page} setPage={setPage} />;
+    }
+  };
+
+  return <div className="font-sans">{renderPage()}</div>;
+}
+
+// (formatCurrency moved to top of file)
+
+// Final wrapper to provide all contexts
+const Root = () => {
+  useEffect(() => {
+    // Import background styles and set up CSS variables
+    import('./styles/backgrounds.css');
+    // Set background image paths directly
+    document.documentElement.style.setProperty('--dashboard-bg', 'url("/images/dashboard-bg.jpg")');
+    document.documentElement.style.setProperty('--transactions-bg', 'url("/images/transactions-bg.jpg")');
+    document.documentElement.style.setProperty('--goals-bg', 'url("/images/goals-bg.jpg")');
+    document.documentElement.style.setProperty('--login-bg', 'url("/images/login-bg.jpg")');
+    document.documentElement.style.setProperty('--investments-bg', 'url("/images/investments-bg.jpg")');
+    document.documentElement.style.setProperty('--settings-bg', 'url("/images/settings-bg.jpg")');
+  }, []);
+
+  return (
+    <AuthProvider>
+      <DataProvider>
+        <App />
+      </DataProvider>
+    </AuthProvider>
+  );
+};
+
+// In a real CRA/Next app, you'd export 'App' and render 'Root' in index.js
+// For this single-file preview, we'll export Root as the default.
+// export default Root; 
+// Re-exporting App as default for standard React convention.
+export default Root;

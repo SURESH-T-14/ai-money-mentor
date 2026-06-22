@@ -1,0 +1,587 @@
+/* Background styles */
+.background-container {
+    width: 100%;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: all 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* Page-specific background styles */
+.bg-dashboard {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                var(--dashboard-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #ffffff;
+}
+
+.bg-transactions {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                var(--transactions-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #ffffff;
+}
+
+.bg-investments {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                var(--investments-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #ffffff;
+}
+
+.bg-goals {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)),
+                var(--goals-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #FFD700;
+}
+
+.bg-settings {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                var(--settings-bg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #ffffff;
+}
+
+/* Page-specific card styles */
+.bg-dashboard .card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.bg-transactions .card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.bg-investments .card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.bg-goals .card {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    color: #FFD700;
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Card content specific styles */
+.bg-dashboard .card-header, 
+.bg-investments .card-header,
+.bg-transactions .card-header {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: #E0FFFF;  /* Light cyan */
+}
+
+.bg-goals .card-header {
+    background: rgba(218, 165, 32, 0.1);
+    border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+    color: #FFD700;
+}
+
+/* Text colors for card content */
+.bg-dashboard .card .text-muted,
+.bg-investments .card .text-muted,
+.bg-transactions .card .text-muted {
+    color: #B0E0E0 !important;  /* Lighter teal */
+}
+
+.bg-goals .card .text-muted {
+    color: #DAA520 !important;  /* Goldenrod */
+}
+
+/* Card hover effects */
+.bg-dashboard .card:hover,
+.bg-investments .card:hover,
+.bg-transactions .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 139, 139, 0.4);
+}
+
+.bg-goals .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(218, 165, 32, 0.3);
+    border-color: #FFD700;
+}
+
+.bg-settings {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), var(--settings-bg);
+    background-size: cover;
+    background-position: center;
+}
+
+.bg-login {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), var(--login-bg);
+    background-size: cover;
+    background-position: center;
+}
+
+/* Modern UI Effects */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+
+/* Background patterns and overlays */
+.bg-dashboard::before,
+.bg-transactions::before,
+.bg-investments::before,
+.bg-goals::before,
+.bg-settings::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.bg-dashboard::before {
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 0, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+.bg-transactions::before {
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.1) 75%),
+                linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.1) 75%);
+    background-size: 60px 60px;
+    background-position: 0 0, 30px 30px;
+}
+
+.bg-investments::before {
+    background: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%),
+                linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%);
+    background-size: 50px 50px;
+}
+
+.bg-goals::before {
+    background: radial-gradient(circle at 30% 50%, rgba(218, 165, 32, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+}
+
+.bg-settings::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%) -50px 0,
+                linear-gradient(225deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%) -50px 0,
+                linear-gradient(315deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+                linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%);
+    background-size: 100px 100px;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-effect-dark {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Utility Classes */
+.text-shadow-sm {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-md {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Financial Data Displays */
+.currency-value {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.trend-positive {
+  color: #28a745;
+}
+
+.trend-negative {
+  color: #dc3545;
+}
+
+.metric-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+/* Card and text enhancements */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Teal theme specific styles */
+.bg-dashboard h1, .bg-investments h1, .bg-transactions h1 {
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bg-dashboard .text-muted, .bg-investments .text-muted, .bg-transactions .text-muted {
+  color: #b0e0e0 !important;
+}
+
+/* Golden black theme specific styles */
+.bg-goals h1 {
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bg-goals .text-muted {
+  color: #daa520 !important;
+}
+
+/* Logo animations */
+.logo {
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+/* Advanced UI Elements */
+
+/* Sophisticated Button Styles */
+.btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:active::after {
+  width: 200%;
+  height: 200%;
+}
+
+/* Theme-specific button styles */
+.bg-dashboard .btn-primary, .bg-investments .btn-primary, .bg-transactions .btn-primary {
+  background: linear-gradient(135deg, rgba(0, 139, 139, 0.9), rgba(0, 128, 128, 0.8));
+  border: none;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 128, 128, 0.2);
+}
+
+.bg-goals .btn-primary {
+  background: linear-gradient(135deg, rgba(218, 165, 32, 0.9), rgba(184, 134, 11, 0.9));
+  border: none;
+  color: black;
+  box-shadow: 0 4px 6px rgba(218, 165, 32, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Form Styles */
+.form-control {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.bg-dashboard .form-control, .bg-investments .form-control, .bg-transactions .form-control {
+  border-color: rgba(0, 139, 139, 0.2);
+}
+
+.bg-goals .form-control {
+  border-color: rgba(218, 165, 32, 0.2);
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 3px rgba(0, 139, 139, 0.2);
+  border-color: rgba(0, 139, 139, 0.5);
+}
+
+/* Card Enhancements */
+.card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+/* Card content styling */
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+/* Data display in cards */
+.data-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.data-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+/* Card sections */
+.card-section {
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-section:last-child {
+  border-bottom: none;
+}
+
+/* Card lists */
+.card-list-item {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.card-list-item:last-child {
+  border-bottom: none;
+}
+
+.card-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Navigation and Sidebar */
+.nav-link {
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin: 0.25rem 0;
+  border-radius: 8px;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 0;
+  width: 3px;
+  background: currentColor;
+  transition: height 0.3s ease;
+}
+
+.nav-link:hover::before {
+  height: 70%;
+}
+
+/* Chart and Data Visualization */
+.chart-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Badges and Status Indicators */
+.badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badge-success {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.badge-warning {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.badge-danger {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+/* Progress Bars */
+.progress {
+  height: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, rgba(0, 139, 139, 0.9), rgba(0, 128, 128, 0.8));
+}
+
+.bg-goals .progress-bar {
+  background: linear-gradient(90deg, rgba(218, 165, 32, 0.9), rgba(184, 134, 11, 0.9));
+}
+
+/* Tooltips and Popovers */
+.tooltip {
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Responsive Design Adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin: 0.5rem 0;
+  }
+  
+  .nav-link {
+    padding: 0.5rem 1rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Loading States */
+.loading-skeleton {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.1), 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.1)
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
