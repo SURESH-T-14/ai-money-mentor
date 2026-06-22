@@ -55,36 +55,37 @@ if (!fs.existsSync(openApiDest)) {
 }
 
 // Generate specmatic.yaml configuration
-const specmaticYaml = `version: 3
-
-components:
-  sources:
-    aiMoneyMentor:
-      filesystem:
-        directory: .
-
-systemUnderTest:
-  service:
-    definitions:
-      - definition:
-          source:
-            $ref: "#/components/sources/aiMoneyMentor"
-          specs:
-            - openapi.yaml
-    runOptions:
-      openapi:
-        type: test
-        baseUrl: "\${APP_URL:http://localhost:5000}"
-    data:
-      examples:
-        - directories:
-            - ./examples
-
-specmatic:
-  settings:
-    test:
-      schemaResiliencyTests: ${mode}
-`;
+const specmaticYaml = [
+  'version: 3',
+  '',
+  'components:',
+  '  sources:',
+  '    aiMoneyMentor:',
+  '      filesystem:',
+  '        directory: .',
+  '',
+  'systemUnderTest:',
+  '  service:',
+  '    definitions:',
+  '      - definition:',
+  '          source:',
+  '            $ref: "#/components/sources/aiMoneyMentor"',
+  '          specs:',
+  '            - openapi.yaml',
+  '    runOptions:',
+  '      openapi:',
+  '        type: test',
+  '        baseUrl: "${APP_URL:http://localhost:5000}"',
+  '    data:',
+  '      examples:',
+  '        - directories:',
+  '            - ./examples',
+  '',
+  'specmatic:',
+  '  settings:',
+  '    test:',
+  `      schemaResiliencyTests: ${mode}`
+].join('\n');
 
 const specmaticYamlPath = path.resolve(workDir, 'specmatic.yaml');
 fs.writeFileSync(specmaticYamlPath, specmaticYaml);
