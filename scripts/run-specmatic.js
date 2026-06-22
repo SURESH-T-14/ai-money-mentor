@@ -97,8 +97,8 @@ let networkName = 'host';
 
 if (!appUrl) {
   if (process.env.GITHUB_ACTIONS) {
-    // GitHub Actions: Use service name on docker-compose network
-    appUrl = 'http://aimoneymentor_server:5000';
+    // GitHub Actions: Use service name 'server' on docker-compose network
+    appUrl = 'http://server:5000';
     networkName = 'server_test_network';
     console.log('GitHub Actions detected. Using service name on docker-compose network.');
   } else if (os.platform() === 'win32') {
