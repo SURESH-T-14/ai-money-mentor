@@ -2,6 +2,7 @@
 
 const { execSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 const mode = process.argv[2] || 'none';
 const validModes = ['none', 'positiveOnly', 'all'];
@@ -17,19 +18,30 @@ const modeLabel = {
   all: 'Full Resiliency Tests'
 }[mode];
 
-const serverDir = __dirname.replace('/scripts', '');
+// Get repository root (parent of scripts directory)
+const repoRoot = path.dirname(__dirname);
 const appUrl = process.env.APP_URL || 'http://localhost:5000';
 const specmaticImage = process.env.SPECMATIC_IMAGE || 'specmatic/specmatic:latest';
+
+// Specmatic work directory
+const specmaticWorkDir = path.resolve(repoRoot, 'specmatic', 'schema-resiliency', '.work', mode);
 
 console.log(`Running ${modeLabel}...`);
 console.log(`Mode: ${mode}`);
 console.log(`APP_URL: ${appUrl}`);
 console.log(`Image: ${specmaticImage}`);
+console.log(`Specmatic Work Dir: ${specmaticWorkDir}`);
+
+// Create work directory if it doesn't exist
+if (!fs.existsSync(specmaticWorkDir)) {
+  fs.mkdirSync(specmaticWorkDir, { recursive: true });
+  console.log(`Created directory: ${specmaticWorkDir}`);
+}
 
 try {
   // Run Specmatic test command
   const cmd = `docker run --rm ` +
-    `-v "${path.resolve(serverDir)}/specmatic/schema-resiliency/.work/${mode}:/usr/src/app" ` +
+    `-v "${specmaticWorkDir}:/usr/src/app" ` +
     `-e "APP_URL=${appUrl}" ` +
     `-e "schemaResiliencyTests=${mode}" ` +
     `${specmaticImage} ` +

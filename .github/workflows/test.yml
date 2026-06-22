@@ -32,6 +32,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm install
+      
       - name: Start services
         working-directory: ./server
         run: |
@@ -44,15 +52,18 @@ jobs:
           docker logs aimoneymentor_server || true
       
       - name: Run Contract Tests
-        working-directory: ./server
         run: |
-          docker exec aimoneymentor_server npm run test:contract
+          node ./scripts/run-specmatic.js none
+        env:
+          APP_URL: http://localhost:5000
       
       - name: Get test output
         if: always()
         run: |
           mkdir -p /tmp/reports
-          docker cp aimoneymentor_server:/app/reports /tmp/ || true
+          if [ -d "./specmatic/schema-resiliency/.work/none" ]; then
+            cp -r ./specmatic/schema-resiliency/.work/none/report.html /tmp/reports/ 2>/dev/null || true
+          fi
       
       - name: Upload reports
         if: always()
@@ -75,6 +86,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm install
+      
       - name: Start services
         working-directory: ./server
         run: |
@@ -87,15 +106,18 @@ jobs:
           docker logs aimoneymentor_server || true
       
       - name: Run Positive Resiliency Tests
-        working-directory: ./server
         run: |
-          docker exec aimoneymentor_server npm run test:resiliency:positive
+          node ./scripts/run-specmatic.js positiveOnly
+        env:
+          APP_URL: http://localhost:5000
       
       - name: Get test output
         if: always()
         run: |
           mkdir -p /tmp/reports
-          docker cp aimoneymentor_server:/app/reports /tmp/ || true
+          if [ -d "./specmatic/schema-resiliency/.work/positiveOnly" ]; then
+            cp -r ./specmatic/schema-resiliency/.work/positiveOnly/report.html /tmp/reports/ 2>/dev/null || true
+          fi
       
       - name: Upload reports
         if: always()
@@ -118,6 +140,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm install
+      
       - name: Start services
         working-directory: ./server
         run: |
@@ -130,15 +160,18 @@ jobs:
           docker logs aimoneymentor_server || true
       
       - name: Run Full Resiliency Tests
-        working-directory: ./server
         run: |
-          docker exec aimoneymentor_server npm run test:resiliency:all
+          node ./scripts/run-specmatic.js all
+        env:
+          APP_URL: http://localhost:5000
       
       - name: Get test output
         if: always()
         run: |
           mkdir -p /tmp/reports
-          docker cp aimoneymentor_server:/app/reports /tmp/ || true
+          if [ -d "./specmatic/schema-resiliency/.work/all" ]; then
+            cp -r ./specmatic/schema-resiliency/.work/all/report.html /tmp/reports/ 2>/dev/null || true
+          fi
       
       - name: Upload reports
         if: always()
