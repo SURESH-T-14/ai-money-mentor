@@ -35,6 +35,12 @@ if (!fs.existsSync(workDir)) {
   console.log(`Created directory: ${workDir}`);
 }
 
+// Create examples directory
+const examplesDir = path.resolve(workDir, 'examples');
+if (!fs.existsSync(examplesDir)) {
+  fs.mkdirSync(examplesDir, { recursive: true });
+}
+
 // Ensure necessary files exist in work directory
 const openApiSrc = path.resolve(repoRoot, 'server', 'specs', 'openapi.yaml');
 const openApiDest = path.resolve(workDir, 'openapi.yaml');
@@ -47,6 +53,42 @@ if (!fs.existsSync(openApiDest)) {
     console.warn(`Warning: openapi.yaml not found at ${openApiSrc}`);
   }
 }
+
+// Generate specmatic.yaml configuration
+const specmaticYaml = `version: 3
+
+components:
+  sources:
+    aiMoneyMentor:
+      filesystem:
+        directory: .
+
+systemUnderTest:
+  service:
+    definitions:
+      - definition:
+          source:
+            $ref: "#/components/sources/aiMoneyMentor"
+          specs:
+            - openapi.yaml
+    runOptions:
+      openapi:
+        type: test
+        baseUrl: "\${APP_URL:http://localhost:5000}"
+    data:
+      examples:
+        - directories:
+            - ./examples
+
+specmatic:
+  settings:
+    test:
+      schemaResiliencyTests: ${mode}
+`;
+
+const specmaticYamlPath = path.resolve(workDir, 'specmatic.yaml');
+fs.writeFileSync(specmaticYamlPath, specmaticYaml);
+console.log(`Generated specmatic.yaml with mode: ${mode}`);
 
 // Determine APP_URL based on environment
 let appUrl = process.env.APP_URL;
