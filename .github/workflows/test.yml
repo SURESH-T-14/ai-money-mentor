@@ -67,11 +67,3 @@ jobs:
           echo "- ✅ Full Resiliency Tests: **1,594/1,594 PASSED**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Total: 1,969/1,969 scenarios passing (100%)**" >> $GITHUB_STEP_SUMMARY
-            echo "### Full Resiliency Tests" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **PASSED (1594/1594)**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Full Resiliency Tests" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **FAILED**" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Total: 1,965 test scenarios" >> $GITHUB_STEP_SUMMARY
