@@ -507,6 +507,241 @@ if (process.env.NODE_ENV === 'test') {
   await User.deleteMany({});  // Complete reset
   await seedTestData();        // Consistent state
 }
+```
+
+This ensures deterministic tests without duplication conflicts.
+
+---
+
+## Official Specmatic Best Practices (From Specmatic Docs)
+
+Based on [Specmatic's official documentation](https://docs.specmatic.io/contract_driven_development/contract_testing), here's how our implementation aligns with industry best practices:
+
+### 1. ✅ External Examples Pattern
+We correctly implemented the **external JSON examples** pattern recommended by Specmatic:
+
+```
+specmatic/schema-resiliency/examples/
+├── test_auth_register_201.json
+├── test_get_user_profile_200.json
+└── ... (14 total example files)
+```
+
+**Why this matters:** External examples provide:
+- Clear separation of test data from specifications
+- Easy traceability of what scenarios are being tested
+- Ability to reuse examples across multiple tools
+- Version control-friendly test data management
+
+### 2. ✅ Example Naming Convention
+Our naming convention `test_[operation]_[status].json` follows Specmatic's recommended practice of:
+- Making test intent obvious from filename
+- Enabling predictable file organization
+- Supporting easy filtering in CI/CD
+
+**Specmatic's approach:** Use naming conventions to correlate request/response examples. For example:
+```
+FETCH_EMPLOYEE_SUCCESS (in request params)
+↓
+FETCH_EMPLOYEE_SUCCESS (in 200 response)
+```
+
+This allows Specmatic to understand "which request generates which response" without additional metadata.
+
+### 3. ✅ Configuration-Driven Testing
+Our `specmatic.yaml` follows Specmatic's recommended centralized configuration:
+
+```yaml
+schemaResiliencyTests: ${SCHEMA_RESILIENCY_TESTS:-all}
+strictMode: true
+requestTimeout: 5000
+```
+
+**Benefits:**
+- Single source of truth for test behavior
+- Environment-specific overrides via variables
+- Reproducible test runs across CI/CD pipelines
+
+### 4. ✅ Schema Resiliency (Generative) Tests
+We enabled Specmatic's most powerful feature - automatically generating boundary condition tests:
+
+```yaml
+schemaResiliencyTests: all
+```
+
+This generates tests for:
+- **Missing required fields** → expects 400
+- **Invalid field types** → expects 400
+- **String length violations** → expects 400
+- **Null values in non-nullable fields** → expects 400
+- **Invalid email formats** → expects 400
+
+**Example:** For a 2-100 character string field, Specmatic automatically generates:
+- Valid: 2 chars, 100 chars, 50 chars
+- Invalid: 1 char, 101 chars, empty string, null
+
+### 5. 🔍 Advanced Feature: Smart Resiliency Orchestration
+Specmatic provides intelligent handling of:
+- **202 Accepted** responses with polling support
+- **429 Too Many Requests** with automatic retries
+- **Retry-After** header respect with exponential backoff
+
+**Our Recommendation:** For future enhancements, consider adding these scenarios to your API specification if you implement long-running operations or rate limiting.
+
+### 6. ✅ Test Filtering Capability
+Specmatic supports powerful filtering to run specific tests:
+
+```bash
+# Run only POST requests
+specmatic test --filter="METHOD='POST'"
+
+# Run only 400-level errors
+specmatic test --filter="STATUS>='400' && STATUS<'500'"
+
+# Combine multiple filters
+specmatic test --filter="(PATH='/users' && METHOD='POST') || (PATH='/transactions' && METHOD='POST')"
+```
+
+**Our Implementation Note:** We didn't need filters because all example files pass. But for large APIs, this is invaluable for targeted testing during development.
+
+### 7. ✅ Strict Mode
+We enabled strict mode in our configuration:
+
+```yaml
+strictMode: true
+```
+
+**Impact:** Specmatic skips test generation for operations without examples, ensuring:
+- Only documented scenarios are tested
+- Clear visibility into coverage gaps
+- Forced discipline around example documentation
+
+Without strict mode, Specmatic auto-generates tests which can hide undocumented endpoints.
+
+### 8. 📊 Coverage and Reporting
+Specmatic generates multiple report formats:
+- **HTML reports** → Human-readable test results
+- **CTRF reports** → CI/CD-friendly JSON format
+
+**Our Setup:** Both reports are enabled in `specmatic.yaml`, available after test runs for:
+- Stakeholder communication (HTML)
+- Automated CI/CD integration (CTRF)
+- Coverage tracking over time
+
+### 9. API Coverage Detection
+**Feature we could adopt:** Specmatic can detect:
+- ✅ APIs defined in spec and tested
+- ⚠️ APIs defined but not tested (coverage gaps)
+- ❌ APIs implemented but not documented in spec
+
+This requires configuring an actuator endpoint in your backend framework.
+
+### 10. Authentication Handling
+**Our Current State:** We handle JWT authentication in examples by:
+```json
+{
+  "http-request": {
+    "headers": {
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+}
+```
+
+**Specmatic's Approach:** Can automatically inject security credentials defined in OpenAPI `securitySchemes`, reducing boilerplate in examples.
+
+---
+
+## How Our Implementation Compares: Score Card
+
+| Best Practice | Implemented | Notes |
+|---|---|---|
+| External JSON examples | ✅ Yes | 14 example files in specmatic/schema-resiliency/examples/ |
+| Consistent naming convention | ✅ Yes | test_[operation]_[status].json pattern |
+| Central configuration | ✅ Yes | specmatic.yaml with environment overrides |
+| Schema resiliency tests | ✅ Yes | All modes enabled (none, positiveOnly, all) |
+| Strict mode | ✅ Yes | Prevents testing undocumented operations |
+| Example-based correlation | ✅ Yes | Naming convention ties requests to responses |
+| Concrete example values | ✅ Yes | All examples use valid, non-placeholder values |
+| Proper datetime format | ✅ Yes | ISO 8601 format in all examples |
+| String constraints in schema | ✅ Yes | minLength/maxLength defined for all strings |
+| Test data seeding | ✅ Yes | Automatic seedTestData() in test mode |
+| Docker network handling | ✅ Yes | Platform-aware configuration |
+| Cross-platform CI/CD | ✅ Yes | Windows, GitHub Actions, and Linux support |
+| API coverage detection | 🟡 Partial | Could add actuator endpoint for full coverage |
+| Custom filtering | ✅ Available | Can use --filter for targeted testing |
+| Programmatic testing | ✅ Available | Can integrate with CI/CD pipelines |
+
+**Overall Alignment: 12/13 core practices implemented (92%)**
+
+---
+
+## Continuous Improvement Roadmap
+
+### Phase 1 (✅ Completed)
+- Specification-driven API development
+- Contract testing with 135 scenarios
+- Schema resiliency with generative tests
+- Multi-mode testing (none, positiveOnly, all)
+- 14 external example files
+- Centralized configuration
+
+### Phase 2 (Recommended)
+- API coverage detection via actuator endpoint
+- Performance testing with load scenarios
+- Backward compatibility testing for versioning
+- Consumer contract testing for downstream services
+
+### Phase 3 (Advanced)
+- Service virtualization for consumer testing
+- Mutation testing for specification robustness
+- GraphQL and AsyncAPI support
+- Custom matchers for domain-specific validation
+
+---
+
+## Key Takeaways
+
+1. **Specifications are Contracts:** Treat your OpenAPI spec as a binding contract between frontend and backend, not just documentation.
+
+2. **Examples are Critical:** Each example generates dozens of test scenarios. Provide concrete, valid examples for all happy-path scenarios.
+
+3. **Generative Testing Finds Edge Cases:** Specmatic's schema resiliency tests find bugs that unit tests miss—invalid type combinations, boundary values, null handling.
+
+4. **Configuration Over Convention (But Use Convention Too):** Use `specmatic.yaml` for reproducibility and `naming conventions` for maintainability.
+
+5. **Test Data Matters:** Deterministic test data (via seeding) is essential for reproducible, non-flaky tests in CI/CD.
+
+6. **Cross-Platform is Hard:** Docker networking differs across Windows, Mac, and Linux. Use configuration to abstract platform differences.
+
+7. **Coverage Metrics Guide Development:** Knowing which endpoints/scenarios are tested helps prioritize testing effort.
+
+---
+
+## References
+
+- **Specmatic Official Docs:** https://docs.specmatic.io/contract_driven_development/contract_testing
+- **OpenAPI 3.0 Specification:** https://spec.openapis.org/oas/v3.0.3
+- **OWASP Input Validation:** https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+- **AI Money Mentor Repository:** https://github.com/SURESH-T-14/ai-money-mentor
+- **Specmatic Example Repositories:** https://docs.specmatic.io/contract_driven_development/contract_repositories
+
+---
+
+## Conclusion
+
+Building a robust API in 2026 requires more than traditional testing—it requires **specification-driven development** where the contract is the source of truth. Through the journey of fixing 7 major issues, we discovered that Specmatic's contract testing approach catches bugs that traditional unit and integration tests miss.
+
+Our implementation now serves as a blueprint for teams adopting specification-driven development with Specmatic. The combination of:
+- Clear, constraint-rich specifications
+- Concrete, example-driven test data
+- Generative boundary condition testing
+- Centralized configuration
+- Deterministic test environment setup
+
+...results in confident, maintainable, and specification-compliant APIs.
+
+**The future of API development is specification-first, and Specmatic makes it practical.**
 
 // For repeated operations in tests
 if (process.env.NODE_ENV === 'test') {
