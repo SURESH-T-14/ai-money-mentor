@@ -42,11 +42,15 @@ paths:
                 email:
                   type: string
                   format: email
+                  minLength: 5
+                  maxLength: 254
+                  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
                   example: "john@example.com"
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
+                  pattern: '^.{6,128}$'
                   example: "password123"
       responses:
         201:
@@ -92,11 +96,13 @@ paths:
                   format: email
                   minLength: 5
                   maxLength: 254
+                  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
                   example: "john@example.com"
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
+                  pattern: '^.{6,128}$'
                   example: "password123"
       responses:
         200:
@@ -254,11 +260,13 @@ paths:
                   format: email
                   minLength: 5
                   maxLength: 254
+                  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
                   example: "jane@example.com"
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
+                  pattern: '^.{6,128}$'
                   example: "password123"
                 role:
                   type: string
