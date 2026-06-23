@@ -89,8 +89,8 @@ paths:
               properties:
                 email:
                   type: string
-                  format: email                  minLength: 5
-                  maxLength: 254                  minLength: 5
+                  format: email
+                  minLength: 5
                   maxLength: 254
                   example: "john@example.com"
                 password:
