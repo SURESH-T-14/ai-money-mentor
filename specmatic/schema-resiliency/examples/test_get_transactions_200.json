@@ -1,0 +1,30 @@
+{
+  "http-request": {
+    "method": "GET",
+    "path": "/api/transactions",
+    "headers": {
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNmEzNTEwODJkYTFiMTI1YTVjNDY0NGMzIn0sImlhdCI6MTc4MTg2MjgyOSwiZXhwIjoxNzgxODY2NDI5fQ.RLYHwqOjorEdcVRPs6oT2yedh_GIZoG3qPucQAaOduM"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "success": true,
+      "transactions": [
+        {
+          "_id": "507f1f77-bcf8-6cd7-9943-9012",
+          "user": "507f1f77-bcf8-6cd7-9943-9011",
+          "description": "Grocery shopping",
+          "notes": "Weekly groceries",
+          "amount": 150.50,
+          "type": "expense",
+          "category": "Food & Groceries",
+          "date": "2024-06-15T10:30:00Z"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/auth/register",
+    "body": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "password123"
+    }
+  },
+  "http-response": {
+    "status": 201,
+    "body": {
+      "success": true,
+      "user": {
+        "_id": "(string)",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "role": "viewer",
+        "status": "active",
+        "createdAt": "(string)"
+      },
+      "token": "(string)"
+    }
+  }
+}

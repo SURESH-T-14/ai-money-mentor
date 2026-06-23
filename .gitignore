@@ -24,6 +24,5 @@ out/
 .tern-port
 coverage/
 reports/
-.work/
-specmatic/
+specmatic/schema-resiliency/.work/
 test-output.txt

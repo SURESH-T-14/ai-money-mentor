@@ -1,0 +1,33 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/transactions",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    },
+    "body": {
+      "description": "Grocery shopping",
+      "notes": "Weekly groceries",
+      "amount": 150.50,
+      "type": "expense",
+      "category": "Food & Groceries",
+      "date": "2024-06-15T10:30:00Z"
+    }
+  },
+  "http-response": {
+    "status": 201,
+    "body": {
+      "success": true,
+      "transaction": {
+        "_id": "(string)",
+        "user": "(string)",
+        "description": "Grocery shopping",
+        "notes": "Weekly groceries",
+        "amount": 150.50,
+        "type": "expense",
+        "category": "Food & Groceries",
+        "date": "(string)"
+      }
+    }
+  }
+}

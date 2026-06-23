@@ -1,0 +1,23 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/ai/chat",
+    "headers": {
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNmEzNTEwODJkYTFiMTI1YTVjNDY0NGMzIn0sImlhdCI6MTc4MTg2MjgyOSwiZXhwIjoxNzgxODY2NDI5fQ.RLYHwqOjorEdcVRPs6oT2yedh_GIZoG3qPucQAaOduM",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "message": "How should I budget my expenses?"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "success": true,
+      "reply": "Based on your spending patterns, here are some strategies: track expenses daily, set up savings goals, and review your budget monthly."
+    }
+  }
+}
