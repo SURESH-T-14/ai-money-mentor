@@ -113,6 +113,10 @@ exports.createUser = async (req, res) => {
     if (password.length > 128) {
       return res.status(400).json({ success: false, message: 'password must not exceed 128 characters' });
     }
+    const passwordPattern = /^.{6,128}$/;
+    if (!passwordPattern.test(password)) {
+      return res.status(400).json({ success: false, message: 'password format is invalid' });
+    }
 
     const ROLES = ['viewer', 'analyst', 'admin'];
     if (role !== undefined) {
