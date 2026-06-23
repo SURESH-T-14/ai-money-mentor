@@ -46,7 +46,7 @@ paths:
                 password:
                   type: string
                   minLength: 6
-                  pattern: '^.{6,}$'
+                  maxLength: 128
                   example: "password123"
       responses:
         201:
@@ -89,12 +89,14 @@ paths:
               properties:
                 email:
                   type: string
-                  format: email
+                  format: email                  minLength: 5
+                  maxLength: 254                  minLength: 5
+                  maxLength: 254
                   example: "john@example.com"
                 password:
                   type: string
                   minLength: 6
-                  pattern: '^.{6,}$'
+                  maxLength: 128
                   example: "password123"
       responses:
         200:
@@ -250,11 +252,13 @@ paths:
                 email:
                   type: string
                   format: email
+                  minLength: 5
+                  maxLength: 254
                   example: "jane@example.com"
                 password:
                   type: string
                   minLength: 6
-                  pattern: '^.{6,}$'
+                  maxLength: 128
                   example: "password123"
                 role:
                   type: string
