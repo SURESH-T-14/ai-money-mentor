@@ -37,6 +37,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'password must be at least 6 characters' });
     }
 
+    // In test mode, delete existing user to allow repeated test registrations
+    if (process.env.NODE_ENV === 'test') {
+      await User.deleteOne({ email });
+    }
+
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ success: false, message: 'User already exists' });
