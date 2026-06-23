@@ -128,6 +128,12 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'status must be a string' });
     }
 
+    // In test mode, allow re-creating test users for each test variation
+    // This enables Specmatic to run multiple variations with the same email
+    if (process.env.NODE_ENV === 'test' && email === 'newuser.test@specmatic.local') {
+      await User.deleteOne({ email });
+    }
+
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ success: false, message: 'User already exists' });
