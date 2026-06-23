@@ -664,10 +664,13 @@ components:
           description: User ID (MongoDB ObjectId)
         name:
           type: string
+          minLength: 2
+          maxLength: 100
           example: "John Doe"
         email:
           type: string
           format: email
+          maxLength: 254
           example: "john@example.com"
         role:
           type: string
@@ -702,9 +705,11 @@ components:
           description: User ID (MongoDB ObjectId)
         description:
           type: string
+          maxLength: 500
           example: "Grocery shopping"
         notes:
           type: string
+          maxLength: 500
           example: "Weekly groceries from Whole Foods"
         amount:
           type: number
@@ -715,6 +720,7 @@ components:
           example: "expense"
         category:
           type: string
+          maxLength: 100
           example: "Food & Groceries"
         date:
           type: string
@@ -732,9 +738,11 @@ components:
           example: false
         message:
           type: string
+          maxLength: 500
           example: "An error occurred"
         error:
           type: string
+          maxLength: 500
           example: "Detailed error message"
 
   securitySchemes:
