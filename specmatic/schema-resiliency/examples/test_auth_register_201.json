@@ -4,7 +4,7 @@
     "path": "/api/auth/register",
     "body": {
       "name": "John Doe",
-      "email": "john@example.com",
+      "email": "(email)",
       "password": "password123"
     }
   },

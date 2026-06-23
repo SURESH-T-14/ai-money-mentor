@@ -3,7 +3,7 @@
     "method": "POST",
     "path": "/api/auth/login",
     "body": {
-      "email": "john@example.com",
+      "email": "test@example.com",
       "password": "password123"
     }
   },
@@ -14,7 +14,7 @@
       "user": {
         "_id": "(string)",
         "name": "John Doe",
-        "email": "john@example.com",
+        "email": "test@example.com",
         "role": "viewer",
         "status": "active",
         "createdAt": "2024-06-15T10:30:00Z"

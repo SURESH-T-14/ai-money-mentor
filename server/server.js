@@ -12,13 +12,82 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Seed function for test mode
+async function seedTestData() {
+  const bcrypt = require('bcryptjs');
+  const User = require('./models/User');
+  const Transaction = require('./models/Transaction');
+  const Budget = require('./models/Budget');
+
+  try {
+    // Delete existing test data
+    await Promise.all([
+      Transaction.deleteMany({}),
+      Budget.deleteMany({}),
+      User.deleteMany({ email: { $in: ['admin@finance.local', 'analyst@finance.local', 'viewer@finance.local', 'test@example.com'] } })
+    ]);
+
+    // Hash passwords
+    const hashPassword = async (password) => {
+      const salt = await bcrypt.genSalt(10);
+      return bcrypt.hash(password, salt);
+    };
+
+    const [adminPassword, analystPassword, viewerPassword, testPassword] = await Promise.all([
+      hashPassword('Admin@123'),
+      hashPassword('Analyst@123'),
+      hashPassword('Viewer@123'),
+      hashPassword('password123')
+    ]);
+
+    // Create test users
+    await User.create([
+      {
+        name: 'Finance Admin',
+        email: 'admin@finance.local',
+        password: adminPassword,
+        role: 'admin',
+        status: 'active'
+      },
+      {
+        name: 'Finance Analyst',
+        email: 'analyst@finance.local',
+        password: analystPassword,
+        role: 'analyst',
+        status: 'active'
+      },
+      {
+        name: 'Finance Viewer',
+        email: 'viewer@finance.local',
+        password: viewerPassword,
+        role: 'viewer',
+        status: 'active'
+      },
+      {
+        name: 'John Doe',
+        email: 'test@example.com',
+        password: testPassword,
+        role: 'viewer',
+        status: 'active'
+      }
+    ]);
+
+    console.log('Test data seeded successfully');
+  } catch (err) {
+    console.error('Seed error:', err);
+  }
+}
+
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:password@mongodb:27017/aimoneymentor?authSource=admin';
 
 mongoose.connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     if (process.env.NODE_ENV !== 'test') {
       console.log('MongoDB connected');
+    } else {
+      // Seed test data
+      await seedTestData();
     }
   })
   .catch(err => {

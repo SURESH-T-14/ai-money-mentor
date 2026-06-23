@@ -26,16 +26,17 @@ async function runSeed() {
     await Promise.all([
       Transaction.deleteMany({}),
       Budget.deleteMany({}),
-      User.deleteMany({ email: { $in: ['admin@finance.local', 'analyst@finance.local', 'viewer@finance.local'] } })
+      User.deleteMany({ email: { $in: ['admin@finance.local', 'analyst@finance.local', 'viewer@finance.local', 'test@example.com'] } })
     ]);
 
-    const [adminPassword, analystPassword, viewerPassword] = await Promise.all([
+    const [adminPassword, analystPassword, viewerPassword, testPassword] = await Promise.all([
       hashPassword('Admin@123'),
       hashPassword('Analyst@123'),
-      hashPassword('Viewer@123')
+      hashPassword('Viewer@123'),
+      hashPassword('password123')
     ]);
 
-    const [adminUser, analystUser, viewerUser] = await User.create([
+    const [adminUser, analystUser, viewerUser, testUser] = await User.create([
       {
         name: 'Finance Admin',
         email: 'admin@finance.local',
@@ -54,6 +55,13 @@ async function runSeed() {
         name: 'Finance Viewer',
         email: 'viewer@finance.local',
         password: viewerPassword,
+        role: 'viewer',
+        status: 'active'
+      },
+      {
+        name: 'John Doe',
+        email: 'test@example.com',
+        password: testPassword,
         role: 'viewer',
         status: 'active'
       }
