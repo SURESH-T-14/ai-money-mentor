@@ -20,11 +20,11 @@ async function seedTestData() {
   const Budget = require('./models/Budget');
 
   try {
-    // Delete existing test data
+    // Clear all data for test mode (fresh start)
     await Promise.all([
       Transaction.deleteMany({}),
       Budget.deleteMany({}),
-      User.deleteMany({ email: { $in: ['admin@finance.local', 'analyst@finance.local', 'viewer@finance.local', 'test@example.com'] } })
+      User.deleteMany({})  // Clear ALL users for fresh test state
     ]);
 
     // Hash passwords

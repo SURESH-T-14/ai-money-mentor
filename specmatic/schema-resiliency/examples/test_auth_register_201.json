@@ -4,7 +4,7 @@
     "path": "/api/auth/register",
     "body": {
       "name": "John Doe",
-      "email": "test+(number)@example.com",
+      "email": "newuser@example.com",
       "password": "password123"
     }
   },
@@ -15,7 +15,7 @@
       "user": {
         "_id": "(string)",
         "name": "John Doe",
-        "email": "test+(number)@example.com",
+        "email": "newuser@example.com",
         "role": "viewer",
         "status": "active",
         "createdAt": "2024-06-15T10:30:00Z"
