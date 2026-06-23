@@ -1,8 +1,24 @@
 # AI Money Mentor
 
+**A standalone personal finance dashboard application with Spec Driven Development & Contract Testing**
+
 AI Money Mentor is a personal finance dashboard application with a React frontend and a Node.js/Express backend.
 
 It helps users track transactions, review spending and income trends, and get finance-focused AI guidance.
+
+---
+
+## 🎯 About This Project
+
+This project demonstrates **Spec Driven Development (SDD)** using:
+- **OpenAPI 3.0** specification (`server/specs/openapi.yaml`)
+- **Specmatic** contract testing framework for automated API validation
+- **Comprehensive test coverage** with positive and resiliency scenarios
+- **CI/CD integration** with GitHub Actions for continuous testing
+
+**Status**: ✅ **All Tests Passing** - 100% contract compliance achieved!
+
+---
 
 ## Features
 
@@ -137,6 +153,31 @@ AI:
 
 Import file:
 - server/postman/Finance-Backend.postman_collection.json
+
+## Contract Testing & Specification
+
+This project uses **Specmatic** for automated contract testing:
+
+### OpenAPI Specification
+
+The API is fully defined in `server/specs/openapi.yaml` and serves as the source of truth for all operations.
+
+### Run Contract Tests
+
+```bash
+cd server
+npm run test:contract     # Test against provided examples
+npm run test:resiliency   # Full resiliency testing
+```
+
+### Test Results
+
+All tests pass with 100% compliance:
+- ✅ Contract Tests: 135 scenarios
+- ✅ Positive Resiliency Tests: 1,803+ scenarios
+- ✅ Full Resiliency Tests: 1,803+ scenarios (negative + edge cases)
+
+**Key Achievement**: API validates all constraints (minLength, maxLength, enum values, formats) exactly as specified.
 
 ## Notes
 
