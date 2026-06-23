@@ -1,0 +1,30 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/users",
+    "headers": {
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzUxMDgyZGExYjEyNWE1YzQ2NDRjMyIsImlhdCI6MTcxODQ2NzAwMH0.fake_token_for_testing"
+    },
+    "body": {
+      "name": "Jane Analyst",
+      "email": "jane.analyst@example.com",
+      "password": "SecurePass123",
+      "role": "analyst"
+    }
+  },
+  "http-response": {
+    "status": 201,
+    "body": {
+      "success": true,
+      "user": {
+        "_id": "(string)",
+        "name": "Jane Analyst",
+        "email": "jane.analyst@example.com",
+        "role": "analyst",
+        "status": "active",
+        "createdAt": "2024-06-15T10:30:00Z",
+        "updatedAt": "2024-06-15T10:30:00Z"
+      }
+    }
+  }
+}
