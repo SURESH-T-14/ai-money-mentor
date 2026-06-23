@@ -15,7 +15,7 @@
       "user": {
         "_id": "(string)",
         "name": "John Doe",
-        "email": "john@example.com",
+        "email": "(email)",
         "role": "viewer",
         "status": "active",
         "createdAt": "2024-06-15T10:30:00Z"
