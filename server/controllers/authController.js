@@ -42,10 +42,6 @@ exports.register = async (req, res) => {
     if (password.length > 128) {
       return res.status(400).json({ success: false, message: 'password must not exceed 128 characters' });
     }
-    const passwordPattern = /^.{6,128}$/;
-    if (!passwordPattern.test(password)) {
-      return res.status(400).json({ success: false, message: 'password format is invalid' });
-    }
 
     // In test mode, delete existing user to allow repeated test registrations
     if (process.env.NODE_ENV === 'test') {
@@ -113,10 +109,6 @@ exports.login = async (req, res) => {
     // Reject if password is null, not a string, or outside length constraints - all return 401
     if (password === null || typeof password !== 'string' || password.length < 6 || password.length > 128) {
       return res.status(401).json({ success: false, message: 'password must be between 6-128 characters' });
-    }
-    const passwordPattern = /^.{6,128}$/;
-    if (!passwordPattern.test(password)) {
-      return res.status(401).json({ success: false, message: 'password format is invalid' });
     }
 
     // TEST mode: accept any valid credentials format
