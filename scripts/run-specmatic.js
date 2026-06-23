@@ -41,6 +41,20 @@ if (!fs.existsSync(examplesDir)) {
   fs.mkdirSync(examplesDir, { recursive: true });
 }
 
+// Copy example files from specmatic/schema-resiliency/examples/ to work directory
+const sourceExamplesDir = path.resolve(repoRoot, 'specmatic', 'schema-resiliency', 'examples');
+if (fs.existsSync(sourceExamplesDir)) {
+  const exampleFiles = fs.readdirSync(sourceExamplesDir).filter(file => file.endsWith('.json'));
+  exampleFiles.forEach(file => {
+    const src = path.resolve(sourceExamplesDir, file);
+    const dest = path.resolve(examplesDir, file);
+    fs.copyFileSync(src, dest);
+  });
+  console.log(`Copied ${exampleFiles.length} example files to work directory`);
+} else {
+  console.warn(`Warning: Examples directory not found at ${sourceExamplesDir}`);
+}
+
 // Ensure necessary files exist in work directory
 const openApiSrc = path.resolve(repoRoot, 'server', 'specs', 'openapi.yaml');
 const openApiDest = path.resolve(workDir, 'openapi.yaml');
