@@ -6,9 +6,9 @@
       "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzUxMDgyZGExYjEyNWE1YzQ2NDRjMyIsImlhdCI6MTcxODQ2NzAwMH0.fake_token_for_testing"
     },
     "body": {
-      "name": "Jane Analyst",
-      "email": "jane.analyst@example.com",
-      "password": "SecurePass123",
+      "name": "New Test User",
+      "email": "newuser.test@specmatic.local",
+      "password": "TestPass123456",
       "role": "analyst"
     }
   },
@@ -18,8 +18,8 @@
       "success": true,
       "user": {
         "_id": "507f1f77bcf86cd799439011",
-        "name": "Jane Analyst",
-        "email": "jane.analyst@example.com",
+        "name": "New Test User",
+        "email": "newuser.test@specmatic.local",
         "role": "analyst",
         "status": "active",
         "createdAt": "2024-06-15T10:30:00Z"

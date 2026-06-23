@@ -39,11 +39,23 @@ jobs:
         env:
           GITHUB_ACTIONS: 'true'
       
+      - name: Restart services (clear database)
+        working-directory: ./server
+        run: |
+          docker compose -f docker-compose.test.yml restart
+          sleep 10
+      
       - name: Run Positive Resiliency Tests
         run: |
           node ./scripts/run-specmatic.js positiveOnly
         env:
           GITHUB_ACTIONS: 'true'
+      
+      - name: Restart services (clear database)
+        working-directory: ./server
+        run: |
+          docker compose -f docker-compose.test.yml restart
+          sleep 10
       
       - name: Run Full Resiliency Tests
         run: |
