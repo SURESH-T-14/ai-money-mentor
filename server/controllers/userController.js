@@ -94,6 +94,9 @@ exports.createUser = async (req, res) => {
     if (typeof email !== 'string') {
       return res.status(400).json({ success: false, message: 'email must be a string' });
     }
+    if (email.length < 5 || email.length > 254) {
+      return res.status(400).json({ success: false, message: 'email must be between 5-254 characters' });
+    }
     if (!email.includes('@')) {
       return res.status(400).json({ success: false, message: 'email must be a valid email format' });
     }
@@ -106,6 +109,9 @@ exports.createUser = async (req, res) => {
     }
     if (password.length < 6) {
       return res.status(400).json({ success: false, message: 'password must be at least 6 characters' });
+    }
+    if (password.length > 128) {
+      return res.status(400).json({ success: false, message: 'password must not exceed 128 characters' });
     }
 
     const ROLES = ['viewer', 'analyst', 'admin'];

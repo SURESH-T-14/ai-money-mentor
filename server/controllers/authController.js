@@ -23,6 +23,9 @@ exports.register = async (req, res) => {
     if (typeof email !== 'string') {
       return res.status(400).json({ success: false, message: 'email must be a string' });
     }
+    if (email.length < 5 || email.length > 254) {
+      return res.status(400).json({ success: false, message: 'email must be between 5-254 characters' });
+    }
     if (!email.includes('@') || !email.includes('.')) {
       return res.status(400).json({ success: false, message: 'email must be a valid email format' });
     }
@@ -35,6 +38,9 @@ exports.register = async (req, res) => {
     }
     if (password.length < 6) {
       return res.status(400).json({ success: false, message: 'password must be at least 6 characters' });
+    }
+    if (password.length > 128) {
+      return res.status(400).json({ success: false, message: 'password must not exceed 128 characters' });
     }
 
     // In test mode, delete existing user to allow repeated test registrations
@@ -93,16 +99,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'email is required' });
     }
     // Reject if email is null or not a string or invalid format - all return 401
-    if (email === null || typeof email !== 'string' || !email.includes('@') || !email.includes('.')) {
+    if (email === null || typeof email !== 'string' || email.length < 5 || email.length > 254 || !email.includes('@') || !email.includes('.')) {
       return res.status(401).json({ success: false, message: 'email must be a valid email format' });
     }
     
     if (password === undefined) {
       return res.status(401).json({ success: false, message: 'password is required' });
     }
-    // Reject if password is null, not a string, or too short - all return 401
-    if (password === null || typeof password !== 'string' || password.length < 6) {
-      return res.status(401).json({ success: false, message: 'password must be at least 6 characters' });
+    // Reject if password is null, not a string, or outside length constraints - all return 401
+    if (password === null || typeof password !== 'string' || password.length < 6 || password.length > 128) {
+      return res.status(401).json({ success: false, message: 'password must be between 6-128 characters' });
     }
 
     // TEST mode: accept any valid credentials format
