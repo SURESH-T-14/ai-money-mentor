@@ -46,6 +46,7 @@ paths:
                 password:
                   type: string
                   minLength: 6
+                  pattern: '^.{6,}$'
                   example: "password123"
       responses:
         201:
@@ -93,6 +94,7 @@ paths:
                 password:
                   type: string
                   minLength: 6
+                  pattern: '^.{6,}$'
                   example: "password123"
       responses:
         200:
@@ -252,6 +254,7 @@ paths:
                 password:
                   type: string
                   minLength: 6
+                  pattern: '^.{6,}$'
                   example: "password123"
                 role:
                   type: string
