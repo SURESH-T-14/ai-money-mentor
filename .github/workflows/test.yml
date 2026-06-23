@@ -39,11 +39,12 @@ jobs:
         env:
           GITHUB_ACTIONS: 'true'
       
-      - name: Restart services (clear database)
+      - name: Stop and restart services (clear database)
         working-directory: ./server
         run: |
-          docker compose -f docker-compose.test.yml restart
-          sleep 10
+          docker compose -f docker-compose.test.yml down -v
+          docker compose -f docker-compose.test.yml up -d
+          sleep 15
       
       - name: Run Positive Resiliency Tests
         run: |
@@ -51,11 +52,12 @@ jobs:
         env:
           GITHUB_ACTIONS: 'true'
       
-      - name: Restart services (clear database)
+      - name: Stop and restart services (clear database)
         working-directory: ./server
         run: |
-          docker compose -f docker-compose.test.yml restart
-          sleep 10
+          docker compose -f docker-compose.test.yml down -v
+          docker compose -f docker-compose.test.yml up -d
+          sleep 15
       
       - name: Run Full Resiliency Tests
         run: |
