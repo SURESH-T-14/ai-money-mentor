@@ -18,7 +18,7 @@
         "email": "john@example.com",
         "role": "viewer",
         "status": "active",
-        "createdAt": "(string)"
+        "createdAt": "2024-06-15T10:30:00Z"
       },
       "token": "(string)"
     }
