@@ -17,13 +17,12 @@
     "body": {
       "success": true,
       "user": {
-        "_id": "(string)",
+        "_id": "507f1f77bcf86cd799439011",
         "name": "Jane Analyst",
         "email": "jane.analyst@example.com",
         "role": "analyst",
         "status": "active",
-        "createdAt": "2024-06-15T10:30:00Z",
-        "updatedAt": "2024-06-15T10:30:00Z"
+        "createdAt": "2024-06-15T10:30:00Z"
       }
     }
   }
