@@ -1,0 +1,63 @@
+version: 3
+
+# Define sources for contract specifications
+components:
+  sources:
+    aiMoneyMentorContracts:
+      filesystem:
+        directory: .
+
+# System Under Test configuration
+systemUnderTest:
+  service:
+    definitions:
+      - definition:
+          source:
+            $ref: "#/components/sources/aiMoneyMentorContracts"
+          specs:
+            - openapi.yaml
+    runOptions:
+      openapi:
+        type: test
+        baseUrl: "${APP_URL:http://localhost:5000}"
+        # Timeout for each API request in milliseconds
+        requestTimeout: 5000
+    # Example data configuration
+    data:
+      examples:
+        - directories:
+            - ./examples
+
+# Specmatic configuration with advanced features
+specmatic:
+  settings:
+    test:
+      # Enable schema resiliency tests: 'none' (contract only), 'positiveOnly' (happy path), 'all' (comprehensive)
+      schemaResiliencyTests: ${SCHEMA_RESILIENCY_TESTS:-all}
+      
+      # Enable strict mode: fail if examples don't match spec
+      strictMode: true
+      
+      # Request timeout in milliseconds
+      requestTimeout: 5000
+      
+      # Maximum number of test combinations to run (to prevent explosion of generative tests)
+      maxTestRequestCombinations: 1000
+
+  # Reporting configuration
+  reports:
+    # Generate HTML reports
+    html:
+      enabled: true
+    # Generate CTRF reports for CI/CD integration
+    ctrf:
+      enabled: true
+
+# Environment-specific configurations
+environments:
+  production:
+    baseUrl: https://api.aimoneymentor.com
+  staging:
+    baseUrl: https://staging-api.aimoneymentor.com
+  development:
+    baseUrl: http://localhost:5000

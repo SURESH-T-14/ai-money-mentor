@@ -1,0 +1,13 @@
+{
+  "http-request": {
+    "method": "DELETE",
+    "path": "/api/transactions/507f1f77bcf86cd799439012",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    }
+  },
+  "http-response": {
+    "status": 204,
+    "body": ""
+  }
+}

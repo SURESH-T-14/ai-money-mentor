@@ -1,0 +1,26 @@
+{
+  "http-request": {
+    "method": "PATCH",
+    "path": "/api/users/507f1f77bcf86cd799439011",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    },
+    "body": {
+      "name": "Jane Doe"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "user": {
+        "_id": "(string)",
+        "name": "Jane Doe",
+        "email": "john@example.com",
+        "role": "viewer",
+        "status": "active",
+        "createdAt": "2024-06-15T10:30:00Z"
+      }
+    }
+  }
+}

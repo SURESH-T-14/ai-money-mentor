@@ -1,0 +1,25 @@
+{
+  "http-request": {
+    "method": "GET",
+    "path": "/api/users",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "users": [
+        {
+          "_id": "(string)",
+          "name": "John Doe",
+          "email": "john@example.com",
+          "role": "viewer",
+          "status": "active",
+          "createdAt": "2024-06-15T10:30:00Z"
+        }
+      ]
+    }
+  }
+}
