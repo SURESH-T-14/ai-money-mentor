@@ -163,7 +163,7 @@ exports.getTransactions = async (req, res) => {
 
     res.json({
       success: true,
-      data: transactions,
+      transactions: transactions,
       page,
       limit,
       total,
