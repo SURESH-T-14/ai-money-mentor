@@ -81,19 +81,22 @@ async function seedTestData() {
     console.log(`[SEED] ✓ Admin user created: ${adminUser.email} (ID: ${adminUser._id})`);
     
     // Create test user with ID expected by update example
-    console.log('[SEED] Creating test user for update example...');
+    console.log('[SEED] Creating test user for update example (ID: 000000000000000000000001)...');
     try {
-      const updateTestUser = await User.create({
-        _id: mongoose.Types.ObjectId('000000000000000000000001'),
-        name: 'Update Test User',
-        email: 'updatetest@example.com',
-        password: hashedPassword,
-        role: 'viewer',
-        status: 'active'
-      });
-      console.log(`[SEED] ✓ Created user for update tests: ${updateTestUser._id}`);
+      const updateTestUser = await User.findByIdAndUpdate(
+        mongoose.Types.ObjectId('000000000000000000000001'),
+        {
+          name: 'Update Test User',
+          email: 'updatetest@example.com',
+          password: hashedPassword,
+          role: 'viewer',
+          status: 'active'
+        },
+        { upsert: true, new: true }
+      );
+      console.log(`[SEED] ✓ Created/Updated user for update tests: ${updateTestUser._id}`);
     } catch (err) {
-      console.warn(`[SEED] Could not create user with update test ID: ${err.message}`);
+      console.error(`[SEED] ERROR creating user: ${err.message}`);
     }
     
     // Create a test transaction for the admin user
@@ -101,20 +104,24 @@ async function seedTestData() {
     const Transaction_Model = require('./models/Transaction');
     
     // Create transaction with ID expected by update/delete examples
+    console.log('[SEED] Creating transaction for update/delete tests (ID: 000000000000000000000002)...');
     try {
-      const updateDeleteTestTransaction = await Transaction_Model.create({
-        _id: mongoose.Types.ObjectId('000000000000000000000002'),
-        user: '6a351082da1b125a5c4644c3',  // Store as STRING, not ObjectId
-        description: 'Transaction for update/delete test',
-        amount: 250.00,
-        type: 'expense',
-        category: 'Testing',
-        date: new Date(),
-        notes: 'Used for update and delete example tests'
-      });
-      console.log(`[SEED] ✓ Created transaction for update/delete tests: ${updateDeleteTestTransaction._id}`);
+      const updateDeleteTestTransaction = await Transaction_Model.findByIdAndUpdate(
+        mongoose.Types.ObjectId('000000000000000000000002'),
+        {
+          user: '6a351082da1b125a5c4644c3',
+          description: 'Transaction for update/delete test',
+          amount: 250.00,
+          type: 'expense',
+          category: 'Testing',
+          date: new Date(),
+          notes: 'Used for update and delete example tests'
+        },
+        { upsert: true, new: true }
+      );
+      console.log(`[SEED] ✓ Created/Updated transaction for update/delete tests: ${updateDeleteTestTransaction._id}`);
     } catch (err) {
-      console.warn(`[SEED] Could not create transaction with test ID: ${err.message}`);
+      console.error(`[SEED] ERROR creating transaction: ${err.message}`);
     }
     
     // Create a generic test transaction (using explicit test mode user ID for update/delete to work)
