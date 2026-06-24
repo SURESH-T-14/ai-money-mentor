@@ -3,7 +3,7 @@
     "method": "POST",
     "path": "/api/auth/google",
     "body": {
-      "token": "google_oauth_token_here"
+      "credential": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjJjOWFhMDAyYzhiYjcyODc2OGQ3Njc4Y2RhY2U2OTQ4NTBkNjhhNWQiLCJ0eXAiOiJKV1QifQ.test"
     }
   },
   "http-response": {

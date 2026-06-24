@@ -157,7 +157,7 @@ exports.getTransactions = async (req, res) => {
     const query = { user: req.user.id, ...filters };
 
     const [transactions, total] = await Promise.all([
-      Transaction.find(query).sort({ date: -1 }).skip(skip).limit(limit),
+      Transaction.find(query).select('-__v').sort({ date: -1 }).skip(skip).limit(limit),
       Transaction.countDocuments(query)
     ]);
 
@@ -189,7 +189,10 @@ exports.addTransaction = async (req, res) => {
     });
 
     const transaction = await newTransaction.save();
-    res.status(201).json({ success: true, transaction });
+    // Remove __v field before returning
+    const transactionObj = transaction.toObject();
+    delete transactionObj.__v;
+    res.status(201).json({ success: true, transaction: transactionObj });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server error' });
