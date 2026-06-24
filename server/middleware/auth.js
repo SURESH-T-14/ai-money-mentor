@@ -22,7 +22,10 @@ module.exports = async function (req, res, next) {
   // If no token and not in test mode, deny access
   if (!token && !isTestMode) {
     console.log(`[AUTH] No token and not in test mode - denying access`);
-    return res.status(401).json({ msg: 'No token, authorization denied' });
+    return res.status(401).json({ 
+      success: false,
+      message: 'No token, authorization denied' 
+    });
   }
   
   // If in test mode and no token, create a mock user
@@ -41,11 +44,17 @@ module.exports = async function (req, res, next) {
     const user = await User.findById(decoded.user.id).select('role status');
 
     if (!user) {
-      return res.status(401).json({ msg: 'User not found' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'User not found'
+      });
     }
 
     if (user.status !== 'active') {
-      return res.status(403).json({ msg: 'User is inactive' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'User is inactive'
+      });
     }
 
     req.user = {
@@ -66,6 +75,9 @@ module.exports = async function (req, res, next) {
       };
       return next();
     }
-    res.status(401).json({ msg: 'Token is not valid' });
+    res.status(401).json({ 
+      success: false,
+      message: 'Token is not valid'
+    });
   }
 };

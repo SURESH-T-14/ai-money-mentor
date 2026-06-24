@@ -113,21 +113,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Import Routes
+// Import Routes - wrap each in its own try/catch to ensure all load even if one fails
 try {
   app.use('/api/auth', require('./routes/auth'));
   console.log('✓ Auth routes mounted at /api/auth');
-  
+} catch (err) {
+  console.error('ERROR loading auth routes:', err.message);
+}
+
+try {
   app.use('/api/users', require('./routes/users'));
   console.log('✓ Users routes mounted at /api/users');
-  
+} catch (err) {
+  console.error('ERROR loading users routes:', err.message);
+}
+
+try {
   app.use('/api/transactions', require('./routes/transactions'));
   console.log('✓ Transactions routes mounted at /api/transactions');
-  
+} catch (err) {
+  console.error('ERROR loading transactions routes:', err.message);
+}
+
+try {
   app.use('/api/ai', require('./routes/ai'));
   console.log('✓ AI routes mounted at /api/ai');
 } catch (err) {
-  console.error('ERROR: Failed to load routes:', err);
+  console.error('ERROR loading AI routes:', err.message);
 }
 
 // Catch-all 404 handler
@@ -135,22 +147,7 @@ app.use((req, res) => {
   console.error(`[404] No route found for ${req.method} ${req.path}`);
   res.status(404).json({ 
     success: false,
-    message: `Route not found: ${req.method} ${req.path}`,
-    availablePaths: [
-      'POST /api/auth/register',
-      'POST /api/auth/login',
-      'POST /api/auth/google',
-      'GET /api/users/me',
-      'GET /api/users',
-      'POST /api/users',
-      'PATCH /api/users/:id',
-      'GET /api/transactions',
-      'POST /api/transactions',
-      'GET /api/transactions/summary',
-      'PUT /api/transactions/:id',
-      'DELETE /api/transactions/:id',
-      'POST /api/ai/chat'
-    ]
+    message: `Route not found: ${req.method} ${req.path}`
   });
 });
 

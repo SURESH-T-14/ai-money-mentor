@@ -1,11 +1,17 @@
 module.exports = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !req.user.role) {
-      return res.status(401).json({ msg: 'Authentication required' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Authentication required'
+      });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ msg: 'Forbidden: insufficient permissions' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Forbidden: insufficient permissions'
+      });
     }
 
     return next();
