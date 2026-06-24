@@ -63,7 +63,7 @@ module.exports = async function (req, res, next) {
       status: user.status
     };
 
-    next();
+    return next();
   } catch (err) {
     // In test mode, accept any token and create a mock user
     if (isTestMode) {

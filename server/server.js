@@ -107,40 +107,62 @@ app.get('/', (req, res) => {
   res.send('AI Money Mentor API is running!');
 });
 
+// Health check endpoint (no auth required)
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
+
 // Middleware to log all incoming requests
 app.use((req, res, next) => {
-  console.log(`[API] ${req.method} ${req.path} - Headers: ${JSON.stringify(req.headers)}`);
+  console.log(`[API] ${req.method} ${req.path}`);
   next();
 });
 
 // Import Routes - wrap each in its own try/catch to ensure all load even if one fails
+console.log('\n[ROUTES] Starting to load API routes...');
+
 try {
-  app.use('/api/auth', require('./routes/auth'));
+  const authRoutes = require('./routes/auth');
+  app.use('/api/auth', authRoutes);
   console.log('✓ Auth routes mounted at /api/auth');
 } catch (err) {
-  console.error('ERROR loading auth routes:', err.message);
+  console.error('✗ ERROR loading auth routes:', err.message);
+  console.error('  Stack:', err.stack);
 }
 
 try {
-  app.use('/api/users', require('./routes/users'));
+  const userRoutes = require('./routes/users');
+  app.use('/api/users', userRoutes);
   console.log('✓ Users routes mounted at /api/users');
 } catch (err) {
-  console.error('ERROR loading users routes:', err.message);
+  console.error('✗ ERROR loading users routes:', err.message);
+  console.error('  Stack:', err.stack);
 }
 
 try {
-  app.use('/api/transactions', require('./routes/transactions'));
+  const transactionRoutes = require('./routes/transactions');
+  app.use('/api/transactions', transactionRoutes);
   console.log('✓ Transactions routes mounted at /api/transactions');
 } catch (err) {
-  console.error('ERROR loading transactions routes:', err.message);
+  console.error('✗ ERROR loading transactions routes:', err.message);
+  console.error('  Stack:', err.stack);
 }
 
 try {
-  app.use('/api/ai', require('./routes/ai'));
+  const aiRoutes = require('./routes/ai');
+  app.use('/api/ai', aiRoutes);
   console.log('✓ AI routes mounted at /api/ai');
 } catch (err) {
-  console.error('ERROR loading AI routes:', err.message);
+  console.error('✗ ERROR loading AI routes:', err.message);
+  console.error('  Stack:', err.stack);
 }
+
+console.log('[ROUTES] Route loading complete\n');
 
 // Catch-all 404 handler
 app.use((req, res) => {
