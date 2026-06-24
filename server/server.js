@@ -104,7 +104,7 @@ async function seedTestData() {
     try {
       const updateDeleteTestTransaction = await Transaction_Model.create({
         _id: mongoose.Types.ObjectId('507f1f77bcf86cd799439012'),
-        user: adminUser._id,
+        user: mongoose.Types.ObjectId('6a351082da1b125a5c4644c3'),  // Use test mode user ID
         description: 'Transaction for update/delete test',
         amount: 250.00,
         type: 'expense',
@@ -117,9 +117,9 @@ async function seedTestData() {
       console.warn(`[SEED] Could not create transaction with test ID: ${err.message}`);
     }
     
-    // Create a generic test transaction
+    // Create a generic test transaction (using explicit test mode user ID for update/delete to work)
     const testTransaction = await Transaction_Model.create({
-      user: adminUser._id,
+      user: mongoose.Types.ObjectId('6a351082da1b125a5c4644c3'),
       description: 'Test transaction',
       amount: 100.00,
       type: 'expense',
