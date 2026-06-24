@@ -695,7 +695,6 @@ components:
           description: Transaction ID
         user:
           type: string
-          format: uuid
           example: "507f1f77bcf86cd799439011"
           description: User ID (MongoDB ObjectId)
         description:
