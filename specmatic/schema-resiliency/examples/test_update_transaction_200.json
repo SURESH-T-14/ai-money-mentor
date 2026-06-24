@@ -1,7 +1,7 @@
 {
   "http-request": {
     "method": "PUT",
-    "path": "/api/transactions/507f1f77bcf86cd799439012",
+    "path": "/api/transactions/000000000000000000000002",
     "headers": {
       "Authorization": "Bearer (string)"
     },

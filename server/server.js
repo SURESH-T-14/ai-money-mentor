@@ -84,7 +84,7 @@ async function seedTestData() {
     console.log('[SEED] Creating test user for update example...');
     try {
       const updateTestUser = await User.create({
-        _id: mongoose.Types.ObjectId('6a3bd3615247f4fa7d2b9a1b'),
+        _id: mongoose.Types.ObjectId('000000000000000000000001'),
         name: 'Update Test User',
         email: 'updatetest@example.com',
         password: hashedPassword,
@@ -103,7 +103,7 @@ async function seedTestData() {
     // Create transaction with ID expected by update/delete examples
     try {
       const updateDeleteTestTransaction = await Transaction_Model.create({
-        _id: mongoose.Types.ObjectId('507f1f77bcf86cd799439012'),
+        _id: mongoose.Types.ObjectId('000000000000000000000002'),
         user: '6a351082da1b125a5c4644c3',  // Store as STRING, not ObjectId
         description: 'Transaction for update/delete test',
         amount: 250.00,

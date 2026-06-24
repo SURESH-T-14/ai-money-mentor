@@ -1,7 +1,7 @@
 {
   "http-request": {
     "method": "PATCH",
-    "path": "/api/users/6a3bd3615247f4fa7d2b9a1b",
+    "path": "/api/users/000000000000000000000001",
     "headers": {
       "Authorization": "Bearer (string)"
     },
