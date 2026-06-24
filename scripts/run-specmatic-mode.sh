@@ -113,11 +113,9 @@ fi
 echo "Running $MODE_LABEL with schemaResiliencyTests: $MODE"
 echo "Specmatic image: $SPECMATIC_IMAGE"
 
-# Set default APP_URL for local development if not already set
-if [ -z "${APP_URL:-}" ]; then
-  APP_URL="http://localhost:5000"
-  echo "APP_URL not set, using default: $APP_URL"
-fi
+# Initialize variables with defaults
+NETWORK_NAME=""
+APP_URL="${APP_URL:-}"
 
 # Create the build directory to capture Specmatic output
 mkdir -p "$BUILD_DIR"
@@ -141,16 +139,44 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
   
   # Wait for server service to be reachable from container
   echo "Waiting for server to be reachable on network $NETWORK_NAME..."
-  docker run --rm --network "$NETWORK_NAME" \
+  REACHABILITY_TEST=$(docker run --rm --network "$NETWORK_NAME" \
     --dns 8.8.8.8 \
     --dns 8.8.4.4 \
     --entrypoint sh \
-    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt \$i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1 || true
+    "$SPECMATIC_IMAGE" -c "for i in 1 2 3 4 5; do wget -q -O /dev/null http://server:5000/ && { echo 'Server is reachable'; exit 0; }; echo 'Attempt \$i/5 failed, retrying...'; sleep 2; done; echo 'ERROR: Server not reachable'; exit 1" 2>&1)
+  REACHABILITY_STATUS=$?
+  echo "$REACHABILITY_TEST"
+  
+  if [ $REACHABILITY_STATUS -ne 0 ]; then
+    echo "WARNING: Server may not be reachable, but continuing with tests..." >&2
+  fi
+else
+  # For local testing, use localhost
+  if [ -z "$APP_URL" ]; then
+    APP_URL="http://localhost:5000"
+    echo "Local mode: APP_URL not set, using default: $APP_URL"
+  fi
+  
+  # Use host network for local testing
+  NETWORK_NAME="host"
+  echo "Local mode: Using host network for Docker"
 fi
+
+# Ensure NETWORK_NAME is set (fallback to host if not set)
+NETWORK_NAME="${NETWORK_NAME:-host}"
+
+echo ""
+echo "=== Specmatic Test Configuration ==="
+echo "Mode: $MODE_LABEL"
+echo "App URL: $APP_URL"
+echo "Docker Network: $NETWORK_NAME"
+echo "Specmatic Image: $SPECMATIC_IMAGE"
+echo "===================================="
+echo ""
 
 set +e
 docker run --rm \
-  --network "${NETWORK_NAME:-host}" \
+  --network "$NETWORK_NAME" \
   --dns 8.8.8.8 \
   --dns 8.8.4.4 \
   -e APP_URL="$APP_URL" \
