@@ -57,7 +57,7 @@ async function seedTestData() {
       // Try to create with explicit ID (must be valid MongoDB ObjectId)
       console.log('[SEED] Attempting to create admin user with explicit ID: 6a351082da1b125a5c4644c3');
       adminUser = await User.create({
-        _id: mongoose.Types.ObjectId('6a351082da1b125a5c4644c3'),
+        _id: new mongoose.Types.ObjectId('6a351082da1b125a5c4644c3'),
         name: 'Finance Admin',
         email: 'admin@finance.local',
         password: hashedPassword,
@@ -84,7 +84,7 @@ async function seedTestData() {
     console.log('[SEED] Creating test user for update example (ID: 000000000000000000000001)...');
     try {
       const updateTestUser = await User.findByIdAndUpdate(
-        mongoose.Types.ObjectId('000000000000000000000001'),
+        new mongoose.Types.ObjectId('000000000000000000000001'),
         {
           name: 'Update Test User',
           email: 'updatetest@example.com',
@@ -107,7 +107,7 @@ async function seedTestData() {
     console.log('[SEED] Creating transaction for update/delete tests (ID: 000000000000000000000002)...');
     try {
       const updateDeleteTestTransaction = await Transaction_Model.findByIdAndUpdate(
-        mongoose.Types.ObjectId('000000000000000000000002'),
+        new mongoose.Types.ObjectId('000000000000000000000002'),
         {
           user: '6a351082da1b125a5c4644c3',
           description: 'Transaction for update/delete test',
