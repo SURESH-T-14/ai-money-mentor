@@ -2,6 +2,7 @@ version: '3.8'
 
 networks:
   test_network:
+    name: aimoneymentor_test_network
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1500
