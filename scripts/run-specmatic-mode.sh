@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail  # Remove 'e' so we can capture exit code and still show output
 
 MODE="${1:-none}"
 
@@ -53,47 +53,40 @@ mkdir -p "$WORK_DIR/examples" "$REPORT_DIR"
 rm -f "$WORK_DIR/examples"/*.json
 cp "$SPEC_DIR/examples/"*.json "$WORK_DIR/examples/"
 
+# Copy the OpenAPI spec
+OPENAPI_SRC="$ROOT_DIR/server/specs/openapi.yaml"
+if [ -f "$OPENAPI_SRC" ]; then
+  cp "$OPENAPI_SRC" "$WORK_DIR/openapi.yaml"
+  echo "Copied OpenAPI spec from $OPENAPI_SRC"
+else
+  echo "Warning: OpenAPI spec not found at $OPENAPI_SRC" >&2
+fi
+
 cat > "$WORK_DIR/specmatic.yaml" <<YAML
 version: 3
 
 components:
   sources:
-    labsContracts:
-      git:
-        url: https://github.com/specmatic/labs-contracts.git
-        branch: main
+    aiMoneyMentor:
+      filesystem:
+        directory: .
 
 systemUnderTest:
   service:
     definitions:
       - definition:
           source:
-            \$ref: "#/components/sources/labsContracts"
+            \$ref: "#/components/sources/aiMoneyMentor"
           specs:
-            - openapi/schema-resiliency/simple-openapi-spec.yaml
+            - openapi.yaml
     runOptions:
       openapi:
         type: test
-        baseUrl: "\${APP_URL:http://localhost:8080}"
-        filter: "PATH!='/health,/monitor/{id},/swagger' && TAGS!='WIP' && STATUS!='202,429'"
+        baseUrl: "\${APP_URL:http://localhost:5000}"
     data:
       examples:
         - directories:
             - ./examples
-
-dependencies:
-  services:
-    - service:
-        definitions:
-          - definition:
-              source:
-                \$ref: "#/components/sources/labsContracts"
-              specs:
-                - openapi/schema-resiliency/simple-openapi-spec.yaml
-        runOptions:
-          openapi:
-            type: mock
-            baseUrl: "\${APP_URL:http://localhost:8080}"
 
 specmatic:
   settings:

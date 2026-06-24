@@ -1,0 +1,26 @@
+{
+  "http-request": {
+    "method": "GET",
+    "path": "/api/transactions/summary",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "summary": {
+        "totalIncome": 5000.00,
+        "totalExpense": 1500.00,
+        "balance": 3500.00,
+        "transactionCount": 25,
+        "categoryBreakdown": {
+          "Food & Groceries": 450,
+          "Utilities": 200,
+          "Entertainment": 300
+        }
+      }
+    }
+  }
+}

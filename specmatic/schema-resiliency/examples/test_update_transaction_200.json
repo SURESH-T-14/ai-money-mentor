@@ -1,0 +1,29 @@
+{
+  "http-request": {
+    "method": "PUT",
+    "path": "/api/transactions/507f1f77bcf86cd799439012",
+    "headers": {
+      "Authorization": "Bearer (string)"
+    },
+    "body": {
+      "amount": 200.75,
+      "category": "Food & Restaurants"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "transaction": {
+        "_id": "(string)",
+        "user": "(string)",
+        "description": "Lunch",
+        "notes": "Work lunch",
+        "amount": 200.75,
+        "type": "expense",
+        "category": "Food & Restaurants",
+        "date": "2024-06-15T10:30:00Z"
+      }
+    }
+  }
+}

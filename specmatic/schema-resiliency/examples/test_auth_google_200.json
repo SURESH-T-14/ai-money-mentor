@@ -1,0 +1,24 @@
+{
+  "http-request": {
+    "method": "POST",
+    "path": "/api/auth/google",
+    "body": {
+      "token": "google_oauth_token_here"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "user": {
+        "_id": "(string)",
+        "name": "John Doe",
+        "email": "google@example.com",
+        "role": "viewer",
+        "status": "active",
+        "createdAt": "2024-06-15T10:30:00Z"
+      },
+      "token": "(string)"
+    }
+  }
+}
