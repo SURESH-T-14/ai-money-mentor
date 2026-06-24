@@ -140,8 +140,8 @@ exports.login = async (req, res) => {
 
 exports.googleLogin = async (req, res) => {
   try {
-    const { credential } = req.body;
-    if (!credential) return res.status(400).json({ msg: 'Missing credential' });
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ msg: 'Missing token' });
 
     // In TEST mode, accept any credential and return mock user without DB operations
     if (process.env.NODE_ENV === 'test') {
