@@ -67,7 +67,7 @@ module.exports = async function (req, res, next) {
   } catch (err) {
     // In test mode, accept any token and create a mock user
     if (isTestMode) {
-      console.log(`[AUTH] Test mode - invalid token provided, but using mock user anyway`);
+      console.log(`[AUTH] Test mode - token verification failed (${err.message}), using mock user`);
       req.user = {
         id: '6a351082da1b125a5c4644c3',
         role: 'admin',
@@ -75,6 +75,7 @@ module.exports = async function (req, res, next) {
       };
       return next();
     }
+    console.log(`[AUTH] Token verification failed: ${err.message}`);
     res.status(401).json({ 
       success: false,
       message: 'Token is not valid'
