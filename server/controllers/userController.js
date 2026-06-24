@@ -109,7 +109,8 @@ exports.updateUser = async (req, res) => {
   }
 
   try {
-    const user = await User.findById(req.params.id);
+    const mongoose = require('mongoose');
+    const user = await User.findById(new mongoose.Types.ObjectId(req.params.id));
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
