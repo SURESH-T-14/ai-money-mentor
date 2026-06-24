@@ -370,6 +370,22 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Transaction'
+                  page:
+                    type: integer
+                    example: 1
+                    description: Current page number
+                  limit:
+                    type: integer
+                    example: 20
+                    description: Number of items per page
+                  total:
+                    type: integer
+                    example: 1
+                    description: Total number of transactions
+                  totalPages:
+                    type: integer
+                    example: 1
+                    description: Total number of pages
         401:
           description: Unauthorized
           content:
