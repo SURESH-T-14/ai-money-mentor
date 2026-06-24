@@ -310,23 +310,16 @@ exports.getSummary = async (req, res) => {
 
     const summary = {
       totalIncome: totals.income,
-      totalExpenses: totals.expense,
-      netBalance: totals.income - totals.expense,
-      categoryTotals: categoryTotals.map((item) => ({
-        category: item._id,
-        total: item.total
-      })),
-      recentActivity,
-      monthlyTrends: monthlyTrends.map((item) => ({
-        year: item._id.year,
-        month: item._id.month,
-        income: item.income,
-        expense: item.expense,
-        net: item.income - item.expense
-      }))
+      totalExpense: totals.expense,
+      balance: totals.income - totals.expense,
+      transactionCount: (await Transaction.countDocuments({ user: req.user.id })) || 0,
+      categoryBreakdown: categoryTotals.reduce((acc, item) => {
+        acc[item._id] = item.total;
+        return acc;
+      }, {})
     };
 
-    return res.json(summary);
+    return res.json({ success: true, summary });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });

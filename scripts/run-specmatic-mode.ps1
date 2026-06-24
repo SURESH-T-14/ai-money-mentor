@@ -56,49 +56,31 @@ version: 3
 
 components:
   sources:
-    labsContracts:
-      git:
-        url: https://github.com/specmatic/labs-contracts.git
-        branch: main
+    aiMoneyMentor:
+      filesystem:
+        directory: .
 
 systemUnderTest:
   service:
     definitions:
       - definition:
           source:
-            `$ref: "#/components/sources/labsContracts"
+            `$ref: "#/components/sources/aiMoneyMentor"
           specs:
-            - openapi/schema-resiliency/simple-openapi-spec.yaml
+            - openapi.yaml
     runOptions:
       openapi:
         type: test
-        baseUrl: "`${APP_URL:http://localhost:8080}"
-        filter: "PATH!='/health,/monitor/{id},/swagger' && TAGS!='WIP' && STATUS!='202,429'"
+        baseUrl: "`${APP_URL:http://localhost:5000}"
     data:
       examples:
         - directories:
             - ./examples
 
-dependencies:
-  services:
-    - service:
-        definitions:
-          - definition:
-              source:
-                `$ref: "#/components/sources/labsContracts"
-              specs:
-                - openapi/schema-resiliency/simple-openapi-spec.yaml
-        runOptions:
-          openapi:
-            type: mock
-            baseUrl: "`${APP_URL:http://localhost:8080}"
-
 specmatic:
   settings:
     test:
       schemaResiliencyTests: $Mode
-    mock:
-      generative: true
 "@
 
 $LicenseArgs = @()
@@ -118,12 +100,34 @@ if ($env:SPECMATIC_LICENSE_FILE) {
 
 Set-Content -Path (Join-Path $WorkDir "specmatic.yaml") -Value $SpecmaticYaml -Encoding UTF8
 
+# Copy the AI Money Mentor OpenAPI spec into the work directory
+$ServerSpecsPath = Join-Path $RootDir "server/specs/openapi.yaml"
+if (Test-Path $ServerSpecsPath) {
+  Copy-Item -Path $ServerSpecsPath -Destination (Join-Path $WorkDir "openapi.yaml") -Force
+  Write-Output "Copied AI Money Mentor OpenAPI spec to work directory"
+} else {
+  [Console]::Error.WriteLine("ERROR: AI Money Mentor OpenAPI spec not found at: $ServerSpecsPath")
+  exit 1
+}
+
 Write-Output "Running $ModeLabel with schemaResiliencyTests: $Mode"
 Write-Output "Specmatic image: $SpecmaticImage"
 
 # Set default APP_URL for local development if not already set
 if (-not $env:APP_URL) {
-  $env:APP_URL = "http://localhost:5000"
+  # On Windows with Docker Desktop, containers need to use host.docker.internal to reach the host
+  # On other systems (Linux/Mac or CI), use localhost
+  if ($env:GITHUB_ACTIONS) {
+    # CI environment will use server service name on docker-compose network
+    $env:APP_URL = "http://server:5000"
+  } elseif ($env:OS -eq "Windows_NT") {
+    # Windows: use host.docker.internal for Docker container access
+    $env:APP_URL = "http://host.docker.internal:5000"
+    Write-Output "Windows detected (OS=$env:OS). Using host.docker.internal for Docker container access"
+  } else {
+    # Linux/Mac: use localhost
+    $env:APP_URL = "http://localhost:5000"
+  }
   Write-Output "APP_URL not set, using default: $env:APP_URL"
 }
 
@@ -163,6 +167,9 @@ $DockerArgs = @(
 
 $Output = & docker @DockerArgs 2>&1
 $DockerStatus = $LASTEXITCODE
+
+# Output the Docker/Specmatic results
+Write-Output $Output
 
 Write-Output ""
 Write-Output "Docker exit status: $DockerStatus"
