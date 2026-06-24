@@ -217,7 +217,7 @@ exports.updateTransaction = async (req, res) => {
 
   try {
     const transaction = await Transaction.findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(req.params.id), user: new mongoose.Types.ObjectId(req.user.id) },
+      { _id: new mongoose.Types.ObjectId(req.params.id), user: req.user.id },
       payload,
       { new: true, runValidators: true }
     );
@@ -240,7 +240,7 @@ exports.deleteTransaction = async (req, res) => {
   }
 
   try {
-    let transaction = await Transaction.findOne({ _id: new mongoose.Types.ObjectId(req.params.id), user: new mongoose.Types.ObjectId(req.user.id) });
+    let transaction = await Transaction.findOne({ _id: new mongoose.Types.ObjectId(req.params.id), user: req.user.id });
     if (!transaction) {
       return res.status(404).json({ msg: 'Transaction not found' });
     }
