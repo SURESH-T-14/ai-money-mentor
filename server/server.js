@@ -80,9 +80,44 @@ async function seedTestData() {
     
     console.log(`[SEED] ✓ Admin user created: ${adminUser.email} (ID: ${adminUser._id})`);
     
+    // Create test user with ID expected by update example
+    console.log('[SEED] Creating test user for update example...');
+    try {
+      const updateTestUser = await User.create({
+        _id: mongoose.Types.ObjectId('6a3bd3615247f4fa7d2b9a1b'),
+        name: 'Update Test User',
+        email: 'updatetest@example.com',
+        password: hashedPassword,
+        role: 'viewer',
+        status: 'active'
+      });
+      console.log(`[SEED] ✓ Created user for update tests: ${updateTestUser._id}`);
+    } catch (err) {
+      console.warn(`[SEED] Could not create user with update test ID: ${err.message}`);
+    }
+    
     // Create a test transaction for the admin user
-    console.log('[SEED] Creating test transaction...');
+    console.log('[SEED] Creating test transactions...');
     const Transaction_Model = require('./models/Transaction');
+    
+    // Create transaction with ID expected by update/delete examples
+    try {
+      const updateDeleteTestTransaction = await Transaction_Model.create({
+        _id: mongoose.Types.ObjectId('507f1f77bcf86cd799439012'),
+        user: adminUser._id,
+        description: 'Transaction for update/delete test',
+        amount: 250.00,
+        type: 'expense',
+        category: 'Testing',
+        date: new Date(),
+        notes: 'Used for update and delete example tests'
+      });
+      console.log(`[SEED] ✓ Created transaction for update/delete tests: ${updateDeleteTestTransaction._id}`);
+    } catch (err) {
+      console.warn(`[SEED] Could not create transaction with test ID: ${err.message}`);
+    }
+    
+    // Create a generic test transaction
     const testTransaction = await Transaction_Model.create({
       user: adminUser._id,
       description: 'Test transaction',
@@ -92,7 +127,7 @@ async function seedTestData() {
       date: new Date(),
       notes: 'Auto-created test transaction'
     });
-    console.log(`[SEED] ✓ Created test transaction: ${testTransaction._id}`);
+    console.log(`[SEED] ✓ Created generic test transaction: ${testTransaction._id}`);
     console.log('[SEED] ✓ Test data seeding completed successfully\n');
     
   } catch (err) {
