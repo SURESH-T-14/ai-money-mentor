@@ -14,7 +14,6 @@ app.use(express.json());   // To parse JSON request bodies
 // Normalize all error responses (4xx/5xx) to match the OpenAPI ErrorResponse schema
 app.use((req, res, next) => {
   const originalJson = res.json;
-  const originalSend = res.send;
 
   res.json = function (body) {
     if (res.statusCode >= 400) {
@@ -49,23 +48,6 @@ app.use((req, res, next) => {
       body = cleanBody;
     }
     return originalJson.call(this, body);
-  };
-
-  res.send = function (body) {
-    if (res.statusCode >= 400 && typeof body === 'string') {
-      try {
-        const parsed = JSON.parse(body);
-        if (parsed && typeof parsed === 'object') {
-          return res.json(parsed);
-        }
-      } catch (e) {
-        return res.json({
-          success: false,
-          message: body
-        });
-      }
-    }
-    return originalSend.call(this, body);
   };
 
   next();
