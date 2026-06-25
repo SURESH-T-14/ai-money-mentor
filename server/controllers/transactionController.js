@@ -226,7 +226,11 @@ exports.updateTransaction = async (req, res) => {
       return res.status(404).json({ msg: 'Transaction not found' });
     }
 
-    return res.json({ success: true, transaction });
+    // Exclude __v field from response
+    const transactionObj = transaction.toObject();
+    delete transactionObj.__v;
+
+    return res.json({ success: true, transaction: transactionObj });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ msg: 'Server error' });
