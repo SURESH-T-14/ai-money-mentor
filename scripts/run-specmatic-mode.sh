@@ -56,11 +56,11 @@ mkdir -p "$WORK_DIR/examples" "$REPORT_DIR"
 rm -f "$WORK_DIR/examples"/*.json
 cp "$SPEC_DIR/examples/"*.json "$WORK_DIR/examples/"
 
-# Copy the OpenAPI spec
+# Copy and filter the OpenAPI spec
 OPENAPI_SRC="$ROOT_DIR/server/specs/openapi.yaml"
 if [ -f "$OPENAPI_SRC" ]; then
-  cp "$OPENAPI_SRC" "$WORK_DIR/openapi.yaml"
-  echo "Copied OpenAPI spec from $OPENAPI_SRC"
+  node "$ROOT_DIR/scripts/filter-openapi.js" "$OPENAPI_SRC" "$WORK_DIR/openapi.yaml" "$MODE"
+  echo "Filtered and copied OpenAPI spec from $OPENAPI_SRC to $WORK_DIR/openapi.yaml"
 else
   echo "Warning: OpenAPI spec not found at $OPENAPI_SRC" >&2
 fi

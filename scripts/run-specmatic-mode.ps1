@@ -103,11 +103,12 @@ if ($env:SPECMATIC_LICENSE_FILE) {
 
 Set-Content -Path (Join-Path $WorkDir "specmatic.yaml") -Value $SpecmaticYaml -Encoding UTF8
 
-# Copy the AI Money Mentor OpenAPI spec into the work directory
+# Copy and filter the AI Money Mentor OpenAPI spec into the work directory
 $ServerSpecsPath = Join-Path $RootDir "server/specs/openapi.yaml"
 if (Test-Path $ServerSpecsPath) {
-  Copy-Item -Path $ServerSpecsPath -Destination (Join-Path $WorkDir "openapi.yaml") -Force
-  Write-Output "Copied AI Money Mentor OpenAPI spec to work directory"
+  $FilterScript = Join-Path $RootDir "scripts/filter-openapi.js"
+  node $FilterScript $ServerSpecsPath (Join-Path $WorkDir "openapi.yaml") $Mode
+  Write-Output "Filtered and copied AI Money Mentor OpenAPI spec to work directory"
 } else {
   [Console]::Error.WriteLine("ERROR: AI Money Mentor OpenAPI spec not found at: $ServerSpecsPath")
   exit 1
