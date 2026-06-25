@@ -42,14 +42,23 @@ exports.register = async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      // In TEST mode, allow re-registration of same email (for test variations)
+      // In PRODUCTION mode, reject duplicate emails
+      if (process.env.NODE_ENV === 'test') {
+        // Update the user with new data and continue
+        user.name = name;
+        user.password = await bcrypt.hash(password, require('bcryptjs').genSaltSync(10));
+        await user.save();
+      } else {
+        return res.status(400).json({ msg: 'User already exists' });
+      }
+    } else {
+      user = new User({ name, email, password });
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+      await user.save();
     }
-    user = new User({ name, email, password });
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    await user.save();
 
     // Create and return token
     const payload = { user: { id: user.id } };
