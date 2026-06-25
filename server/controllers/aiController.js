@@ -99,6 +99,12 @@ exports.chat = async (req, res) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ msg: 'Invalid message' });
     }
+
+    // Validate message length (schema: minLength 1, maxLength 1000)
+    if (message.length < 1 || message.length > 1000) {
+      return res.status(400).json({ msg: 'Message must be between 1 and 1000 characters' });
+    }
+
     if (!isOnTopic(message)) {
       return res.json({ success: true, reply: 'I can only help with money management, budgeting, expenses, goals, investments, and related financial topics. Please rephrase with a financial focus.' });
     }

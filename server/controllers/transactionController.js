@@ -20,6 +20,8 @@ function buildTransactionPayload(body, isUpdate = false) {
   if (!isUpdate || hasAmount) {
     if (body.amount === undefined || body.amount === null || Number.isNaN(Number(body.amount))) {
       errors.push('amount must be a valid number');
+    } else if (Number(body.amount) < 0.01) {
+      errors.push('amount must be at least 0.01');
     } else {
       payload.amount = Number(body.amount);
     }
