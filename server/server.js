@@ -11,6 +11,66 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());   // To parse JSON request bodies 
 
+// Normalize all error responses (4xx/5xx) to match the OpenAPI ErrorResponse schema
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  const originalSend = res.send;
+
+  res.json = function (body) {
+    if (res.statusCode >= 400) {
+      let message = 'An error occurred';
+      let errorDetail;
+
+      if (body && typeof body === 'object') {
+        if (body.msg !== undefined) {
+          message = body.msg;
+        } else if (body.message !== undefined) {
+          message = body.message;
+        }
+
+        if (body.errors !== undefined) {
+          errorDetail = Array.isArray(body.errors) ? body.errors.join(', ') : String(body.errors);
+        } else if (body.error !== undefined) {
+          errorDetail = String(body.error);
+        }
+      } else if (body !== undefined && body !== null) {
+        message = String(body);
+      }
+
+      const cleanBody = {
+        success: false,
+        message: String(message)
+      };
+
+      if (errorDetail !== undefined) {
+        cleanBody.error = String(errorDetail);
+      }
+
+      body = cleanBody;
+    }
+    return originalJson.call(this, body);
+  };
+
+  res.send = function (body) {
+    if (res.statusCode >= 400 && typeof body === 'string') {
+      try {
+        const parsed = JSON.parse(body);
+        if (parsed && typeof parsed === 'object') {
+          return res.json(parsed);
+        }
+      } catch (e) {
+        return res.json({
+          success: false,
+          message: body
+        });
+      }
+    }
+    return originalSend.call(this, body);
+  };
+
+  next();
+});
+
 // Connect to MongoDB
 console.log('\n[DB] Connecting to MongoDB...');
 console.log(`[DB] MONGO_URI: ${process.env.MONGO_URI ? process.env.MONGO_URI.replace(/\/\/.*:.*@/, '//***:***@') : 'NOT SET'}`);
