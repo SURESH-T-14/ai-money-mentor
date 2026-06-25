@@ -18,40 +18,69 @@ function buildTransactionPayload(body, isUpdate = false) {
   const hasDate = body.date !== undefined;
 
   if (!isUpdate || hasAmount) {
-    if (body.amount === undefined || body.amount === null || Number.isNaN(Number(body.amount))) {
+    if (hasAmount && body.amount !== undefined && body.amount !== null) {
+      // Only validate if provided
+      if (Number.isNaN(Number(body.amount))) {
+        errors.push('amount must be a valid number');
+      } else if (Number(body.amount) < 0.01) {
+        errors.push('amount must be at least 0.01');
+      } else {
+        payload.amount = Number(body.amount);
+      }
+    } else if (!isUpdate && (body.amount === undefined || body.amount === null)) {
+      // For creates, amount is required
       errors.push('amount must be a valid number');
-    } else if (Number(body.amount) < 0.01) {
-      errors.push('amount must be at least 0.01');
-    } else {
-      payload.amount = Number(body.amount);
+    } else if (hasAmount && (body.amount === undefined || body.amount === null) && !isUpdate) {
+      // For creates, amount is required
+      errors.push('amount must be a valid number');
     }
   }
 
   if (!isUpdate || hasCategory) {
-    if (!body.category || typeof body.category !== 'string') {
+    if (hasCategory && body.category) {
+      // Only validate if provided and non-empty
+      if (typeof body.category !== 'string') {
+        errors.push('category must be a string');
+      } else {
+        payload.category = body.category.trim();
+      }
+    } else if (!isUpdate && !body.category) {
+      // For creates, category is required
       errors.push('category is required');
-    } else {
-      payload.category = body.category.trim();
     }
   }
 
   if (!isUpdate || hasType) {
-    const type = body.type || 'expense';
-    if (!TRANSACTION_TYPES.includes(type)) {
-      errors.push('type must be one of income or expense');
-    } else {
-      payload.type = type;
+    if (hasType && body.type) {
+      // Only validate if provided and non-empty
+      if (!TRANSACTION_TYPES.includes(body.type)) {
+        errors.push('type must be one of income or expense');
+      } else {
+        payload.type = body.type;
+      }
+    } else if (hasType && !body.type && !isUpdate) {
+      // For creates, type is optional (defaults to expense)
+      payload.type = 'expense';
+    } else if (!isUpdate && !body.type) {
+      // For creates, type is optional (defaults to expense)
+      payload.type = 'expense';
     }
   }
 
   if (!isUpdate || hasDate) {
-    const dateValue = body.date || new Date();
-    const parsedDate = parseDate(dateValue);
-    if (!parsedDate) {
-      errors.push('date must be a valid date');
-    } else {
-      payload.date = parsedDate;
+    if (hasDate && body.date) {
+      // Only validate if provided and non-empty
+      const parsedDate = parseDate(body.date);
+      if (!parsedDate) {
+        errors.push('date must be a valid date');
+      } else {
+        payload.date = parsedDate;
+      }
+    } else if (!isUpdate) {
+      // For creates, date defaults to now
+      payload.date = new Date();
     }
+    // For updates without date, it's optional - skip validation
   }
 
   if (body.description !== undefined) {
