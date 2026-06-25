@@ -142,6 +142,8 @@ npm start
 
 > [!IMPORTANT]
 > To avoid getting `Not Implemented` failures in your Specmatic resiliency report, you **MUST** run the backend server in **Test Mode** (`NODE_ENV=test`) before launching the test suite. If the server runs in standard dev mode, it returns `401 Unauthorized` for mock JWTs, resulting in test validation failures.
+>
+> **Test State & Database Cleanliness**: Specmatic tests and request mutations modify, update, and delete database resources. Running different test modes in succession without resetting the database can result in failures due to state mismatch. **Always restart the backend server or container sandbox** (e.g., `docker compose -f server/docker-compose.test.yml down && docker compose -f server/docker-compose.test.yml up -d`) between test runs to ensure a clean database seed from scratch.
 
 ### Quick Start with Global CLI
 You can install and use the repository's helper CLI to easily run tests from any terminal window:

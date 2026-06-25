@@ -104,6 +104,9 @@ Demo logins:
 
 Specmatic contract/resiliency tests require the server to be running in **Test Mode** (`NODE_ENV=test`). To run tests, start the server in test mode, then run:
 
+> [!IMPORTANT]
+> **State & DB Cleanliness**: Specmatic tests and mutations modify resources in the database. Running different test suites or running them in succession can cause failures due to state mismatch. **Always restart the backend server or container sandbox** (e.g. `docker compose -f docker-compose.test.yml down && docker compose -f docker-compose.test.yml up -d`) between successive runs to ensure a clean database seed from scratch.
+
 ### Windows (PowerShell)
 ```powershell
 npm run test:contract           # Runs Contract Tests

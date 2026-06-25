@@ -42,6 +42,9 @@ npm run dev
 
 Open a separate terminal window and execute the desired test suite from the repository root:
 
+> [!IMPORTANT]
+> **State & DB Cleanliness Warning**: Specmatic tests and mutations modify the database state. Running different modes in succession without resetting the server database will cause failures due to state mismatch. **Always restart the backend server or container sandbox** (e.g. `docker compose -f server/docker-compose.test.yml down && docker compose -f server/docker-compose.test.yml up -d`) between successive runs to clear and re-seed database state from scratch.
+
 ### A. Mac & Linux (Bash)
 ```bash
 # Contract Tests (none mode)
