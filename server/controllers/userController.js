@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const ROLES = ['viewer', 'analyst', 'admin'];
 const STATUSES = ['active', 'inactive'];
@@ -124,6 +125,10 @@ exports.createUser = async (req, res) => {
 };
 
 exports.updateUser = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ msg: 'Invalid user id' });
+  }
+
   const { name, role, status, password } = req.body || {};
 
   if (role !== undefined && (role === null || !ROLES.includes(role))) {
@@ -140,7 +145,6 @@ exports.updateUser = async (req, res) => {
   }
 
   try {
-    const mongoose = require('mongoose');
     const user = await User.findById(new mongoose.Types.ObjectId(req.params.id));
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
