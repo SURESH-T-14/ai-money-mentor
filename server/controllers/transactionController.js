@@ -8,7 +8,7 @@ function parseDate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function buildTransactionPayload(body, isUpdate = false) {
+function buildTransactionPayload(body = {}, isUpdate = false) {
   const payload = {};
   const errors = [];
 

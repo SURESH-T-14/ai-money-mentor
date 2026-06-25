@@ -72,15 +72,15 @@ exports.createUser = async (req, res) => {
     return res.status(400).json({ msg: 'Invalid email format' });
   }
 
-  if (password.length < 6) {
+  if (typeof password !== 'string' || password.length < 6) {
     return res.status(400).json({ msg: 'Password must be at least 6 characters' });
   }
 
-  if (role && !ROLES.includes(role)) {
+  if (role !== undefined && (role === null || !ROLES.includes(role))) {
     return res.status(400).json({ msg: 'Invalid role' });
   }
 
-  if (status && !STATUSES.includes(status)) {
+  if (status !== undefined && (status === null || !STATUSES.includes(status))) {
     return res.status(400).json({ msg: 'Invalid status' });
   }
 
@@ -126,11 +126,11 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   const { name, role, status, password } = req.body || {};
 
-  if (role && !ROLES.includes(role)) {
+  if (role !== undefined && (role === null || !ROLES.includes(role))) {
     return res.status(400).json({ msg: 'Invalid role' });
   }
 
-  if (status && !STATUSES.includes(status)) {
+  if (status !== undefined && (status === null || !STATUSES.includes(status))) {
     return res.status(400).json({ msg: 'Invalid status' });
   }
 
@@ -159,7 +159,7 @@ exports.updateUser = async (req, res) => {
     }
 
     if (password !== undefined) {
-      if (password.length < 6) {
+      if (password === null || typeof password !== 'string' || password.length < 6) {
         return res.status(400).json({ msg: 'Password must be at least 6 characters' });
       }
       const salt = await bcrypt.genSalt(10);
