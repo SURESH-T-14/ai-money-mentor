@@ -90,13 +90,17 @@ exports.login = async (req, res) => {
   const { email, password } = req.body || {};
 
   if (!email || !password) {
-    return res.status(400).json({ msg: 'email and password are required' });
+    return res.status(401).json({ msg: 'email and password are required' });
   }
 
   // Validate email format (basic email validation)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ msg: 'Invalid email format' });
+  if (typeof email !== 'string' || !emailRegex.test(email)) {
+    return res.status(401).json({ msg: 'Invalid email format' });
+  }
+
+  if (typeof password !== 'string' || password.length < 6) {
+    return res.status(401).json({ msg: 'Password must be at least 6 characters' });
   }
 
   // In TEST mode, accept any credentials and return mock user without DB operations
@@ -126,16 +130,16 @@ exports.login = async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(401).json({ msg: 'Invalid credentials' });
     }
 
     if (user.status !== 'active') {
-      return res.status(403).json({ msg: 'User is inactive' });
+      return res.status(401).json({ msg: 'User is inactive' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(401).json({ msg: 'Invalid credentials' });
     }
 
     // Create and return token
@@ -167,7 +171,7 @@ exports.login = async (req, res) => {
 exports.googleLogin = async (req, res) => {
   try {
     const { token } = req.body || {};
-    if (!token) return res.status(400).json({ msg: 'Missing token' });
+    if (!token || typeof token !== 'string') return res.status(400).json({ msg: 'Missing token' });
 
     // In TEST mode, accept any credential and return mock user without DB operations
     if (process.env.NODE_ENV === 'test') {
