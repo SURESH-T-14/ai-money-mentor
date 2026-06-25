@@ -90,17 +90,17 @@ exports.login = async (req, res) => {
   const { email, password } = req.body || {};
 
   if (!email || !password) {
-    return res.status(401).json({ msg: 'email and password are required' });
+    return res.status(400).json({ msg: 'email and password are required' });
   }
 
   // Validate email format (basic email validation)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (typeof email !== 'string' || !emailRegex.test(email)) {
-    return res.status(401).json({ msg: 'Invalid email format' });
+    return res.status(400).json({ msg: 'Invalid email format' });
   }
 
   if (typeof password !== 'string' || password.length < 6) {
-    return res.status(401).json({ msg: 'Password must be at least 6 characters' });
+    return res.status(400).json({ msg: 'Password must be at least 6 characters' });
   }
 
   // In TEST mode, accept any credentials and return mock user without DB operations
