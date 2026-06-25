@@ -1,129 +1,92 @@
-# Quick Start: Running Spec Driven Development Tests
+# Quick Start: Running Specmatic Contract & Resiliency Tests
 
-## 🚀 Quick Start (5 minutes)
+This guide helps you run tests locally in under 5 minutes.
 
-### Option 1: Local Testing (Recommended for Development)
+---
 
-1. **Terminal 1 - Start the Server**
-   ```bash
-   cd server
-   npm install
-   npm start
-   ```
-   Server runs on http://localhost:5000
+## 🚀 Step 1: Start the Backend in Test Mode
 
-2. **Terminal 2 - Run Contract Tests**
-   ```bash
-   cd server
-   npm run test:contract
-   ```
+For Specmatic tests to pass, the server **MUST** run with `NODE_ENV=test` so it can auto-seed required test resources and accept mock tokens.
 
-**Expected Output:**
-```
-✓ POST /api/auth/register
-✓ POST /api/auth/login
-✓ GET /api/users/me
-✓ GET /api/transactions
-✓ POST /api/transactions
-✓ GET /api/transactions/summary
-✓ POST /api/ai/chat
-```
+Select the command corresponding to your operating system and shell:
 
-### Option 2: Docker Testing (Isolated Environment)
-
+### A. Mac & Linux (Bash / Zsh)
 ```bash
 cd server
-
-# Run tests in Docker
-docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+NODE_ENV=test MONGO_URI=mongodb://localhost:27017/aimoneymentor PORT=5000 npm run dev
 ```
 
----
-
-## 📋 Common Commands
-
-### Validate OpenAPI Spec
-```bash
+### B. Windows (PowerShell)
+```powershell
 cd server
-npm run test:contract:validate
+$env:NODE_ENV="test"
+$env:MONGO_URI="mongodb://localhost:27017/aimoneymentor"
+$env:PORT="5000"
+npm run dev
 ```
 
-### Run Tests with Details
-```bash
+### C. Windows (cmd)
+```cmd
 cd server
-npm run test:contract:verbose
+set NODE_ENV=test
+set MONGO_URI=mongodb://localhost:27017/aimoneymentor
+set PORT=5000
+npm run dev
 ```
 
-### Start Mock Server
+*The server will be running on `http://localhost:5000` with auto-seeding enabled.*
+
+---
+
+## 🧪 Step 2: Run the Specmatic Tests
+
+Open a separate terminal window and execute the desired test suite from the repository root:
+
+### A. Mac & Linux (Bash)
 ```bash
-cd server
-npm run mock
-# Mock API runs on http://localhost:8080
+# Contract Tests (none mode)
+bash scripts/run-specmatic-mode.sh none
+
+# Positive Resiliency Tests (positiveOnly mode)
+bash scripts/run-specmatic-mode.sh positiveOnly
+
+# Full Resiliency Tests (all mode)
+bash scripts/run-specmatic-mode.sh all
 ```
 
-### View API Documentation
+### B. Windows (PowerShell)
+```powershell
+# Contract Tests (none mode)
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 none
+
+# Positive Resiliency Tests (positiveOnly mode)
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 positiveOnly
+
+# Full Resiliency Tests (all mode)
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 all
+```
+
+---
+
+## 🐳 Docker Alternative (Fully Isolated Sandbox)
+
+If you do not want to install Node/MongoDB locally, you can run both the database container and the backend container pre-configured in test mode via Docker Compose:
+
 ```bash
-# Open in Swagger UI
-open http://localhost:8080/api-docs
-
-# Or use online editor
-# https://editor.swagger.io/
-# Load: ./specs/openapi.yaml
+# Run from repository root or server directory
+docker compose -f server/docker-compose.test.yml up -d
 ```
+*This starts the server on `http://localhost:5000` and MongoDB container in the background. You can then run any of the Specmatic tests from Step 2.*
 
----
-
-## 🔍 Troubleshooting
-
-### Tests Fail: "Connection refused"
-**Problem**: Server not running
-**Solution**: Start server in another terminal
+To stop the containers:
 ```bash
-cd server
-npm start
+docker compose -f server/docker-compose.test.yml down
 ```
 
-### Tests Fail: "Spec not found"
-**Problem**: OpenAPI file location incorrect
-**Solution**: Check path in `specmatic.yaml`
-```yaml
-definition:
-  specPath: ./specs/openapi.yaml  # Must be correct path
-```
-
-### Tests Fail: "Type mismatch"
-**Problem**: Response doesn't match spec
-**Solution**: Check implementation returns correct data types
-
 ---
 
-## 📚 Next Steps
+## 🔍 Troubleshooting: 36 Failures / Not Implemented Remarks
 
-1. **Read the full guide**: `SPEC_DRIVEN_DEVELOPMENT.md`
-2. **Add more examples**: Edit files in `examples/` directory
-3. **Integrate in CI/CD**: Use `npm run test:contract` in pipeline
-4. **Mock for frontend**: Run `npm run mock` for parallel development
-
----
-
-## 🎯 API Endpoints
-
-- **Auth**: POST `/api/auth/register`, `/api/auth/login`
-- **Users**: GET `/api/users/me`, GET `/api/users`, POST `/api/users`
-- **Transactions**: GET/POST `/api/transactions`, GET `/api/transactions/summary`
-- **AI**: POST `/api/ai/chat`
-
-See `specs/openapi.yaml` for full details.
-
----
-
-## 💡 Tips
-
-- Update spec **before** implementing changes
-- Run tests on every commit
-- Use mock server for frontend development
-- Keep examples updated with new scenarios
-
----
-
-For detailed information, see [SPEC_DRIVEN_DEVELOPMENT.md](./SPEC_DRIVEN_DEVELOPMENT.md)
+If you see `Not Implemented` remarks or failures for transaction update/delete requests under your Specmatic resiliency reports:
+1. **Root Cause**: The backend server is not running in test mode (`NODE_ENV=test`) or was started without MongoDB. Consequently, authorization checks fail, returning `401 Unauthorized` responses which Specmatic marks as failures.
+2. **Resolution**: Terminate your active backend server and restart it using the exact commands in **Step 1** above (setting `NODE_ENV=test`). If using Docker, use the command under the **Docker Alternative** section.

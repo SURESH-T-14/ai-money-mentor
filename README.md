@@ -1,268 +1,210 @@
 # AI Money Mentor
 
-## 1. Project Overview
+A comprehensive personal finance dashboard built with a **React frontend** and a **Node.js/Express backend** featuring role-based access control, transaction tracking, dashboard summaries, and AI-driven insights.
 
-AI Money Mentor is a personal finance dashboard with a React frontend and a Node.js/Express backend. It supports authentication, role-based access control, transaction tracking, dashboard summaries, and an AI money mentor chat endpoint.
+This repository includes a Docker-based **Specmatic Contract & Resiliency Testing Suite** to validate API conformance and schema robustness.
 
-This repository also includes a Specmatic Docker-based contract testing setup. The Specmatic suite demonstrates contract tests and schema resiliency tests in three modes: `none`, `positiveOnly`, and `all`.
+---
 
-Specmatic is not installed as an npm package in this project. Use the official Docker image instead:
+## 📋 Table of Contents
+1. [Prerequisites](#1-prerequisites)
+2. [Database Setup Options](#2-database-setup-options)
+3. [Environment Configuration](#3-environment-configuration)
+4. [Setting Up & Running the Application](#4-setting-up--running-the-application)
+5. [Specmatic Contract & Resiliency Testing](#5-specmatic-contract--resiliency-testing)
+6. [Why NODE_ENV=test is Required](#6-why-node_envtest-is-required)
+7. [Command Reference Table](#7-command-reference-table)
 
+---
+
+## 1. Prerequisites
+
+Before starting, ensure you have the following installed on your system:
+- **Node.js** (v18 or higher)
+- **npm** (v9 or higher)
+- **Docker** (Required for running Specmatic tests and recommended for the test database)
+- **MongoDB** (A connection string to a local instance, Docker container, or Atlas cluster)
+
+---
+
+## 2. Database Setup Options
+
+The backend requires MongoDB to persist transactions and user roles. You can use any of the three options below:
+
+### Option A: Docker (Recommended for Tests & Isolated Dev)
+If you have Docker running, you can start a pre-configured MongoDB container along with the backend server running in test mode with a single command. This completely avoids manual database installations.
 ```bash
-docker run --rm specmatic/specmatic --version
+docker compose -f server/docker-compose.test.yml up -d
+```
+*The database will be exposed on port `27017` with credentials `admin` / `password`.*
+
+### Option B: Local MongoDB Server
+If you have MongoDB Community Server installed locally on your machine, ensure the service is running:
+- **Windows**: Verify that the `MongoDB Server` service is running in `services.msc` or start it via cmd:
+  ```cmd
+  net start MongoDB
+  ```
+- **Mac (Homebrew)**:
+  ```bash
+  brew services start mongodb-community
+  ```
+- **Linux (systemd)**:
+  ```bash
+  sudo systemctl start mongod
+  ```
+*Your connection string will typically be: `mongodb://localhost:27017/aimoneymentor`.*
+
+### Option C: MongoDB Atlas (Cloud)
+1. Sign up for a free account on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a free tier cluster (M0) and set up a database user and IP access whitelist (`0.0.0.0/0` for testing).
+3. Copy the connection string under the **Connect** tab (e.g., `mongodb+srv://<username>:<password>@cluster0.mongodb.net/aimoneymentor`).
+
+---
+
+## 3. Environment Configuration
+
+Create a file named `.env` in the `server` directory and configure the environment variables:
+
+```env
+# MongoDB Connection String (Replace with your Atlas or Local URL)
+MONGO_URI=mongodb://localhost:27017/aimoneymentor
+
+# JWT Secret Key (Any secure random string)
+JWT_SECRET=your_jwt_secret_here
+
+# Port to run the server on
+PORT=5000
+
+# Google OAuth & OpenAI Keys (Optional/Dummy values allowed for local testing)
+GOOGLE_CLIENT_ID=optional-google-client-id
+OPENAI_API_KEY=optional-openai-api-key
 ```
 
-If the assignment requires Specmatic Enterprise, use:
+---
 
-```bash
-docker run --rm specmatic/enterprise --version
-```
+## 4. Setting Up & Running the Application
 
-## 2. Setup Instructions
+### 1. Install Dependencies
 
-Prerequisites:
-
-- Node.js 18+
-- npm
-- MongoDB or a MongoDB connection string
-- Docker for Specmatic tests
-
-Install frontend dependencies:
-
+Install frontend client dependencies:
 ```bash
 cd client
 npm install
 ```
 
-Install backend dependencies:
-
+Install backend server dependencies:
 ```bash
 cd ../server
 npm install
 ```
 
-Create `server/.env`:
+### 2. Start the Application
 
-```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-PORT=5000
-GOOGLE_CLIENT_ID=optional
-OPENAI_API_KEY=optional
-```
+You can start the backend server in either **Development Mode** (for regular UI/Postman testing) or **Test Mode** (specifically required for Specmatic testing).
 
-Run the backend:
+#### A. Running in Development Mode
+Starts the server with standard authentication checks and your local database.
+- **Mac / Linux / Windows (Bash)**:
+  ```bash
+  npm run dev
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  npm run dev
+  ```
 
-```bash
-cd server
-npm run dev
-```
+#### B. Running in Test Mode (Crucial for Specmatic Tests)
+Sets `NODE_ENV=test` to enable auto-seeding and mock authentication.
+- **Mac / Linux / Windows (Bash)**:
+  ```bash
+  NODE_ENV=test MONGO_URI=mongodb://localhost:27017/aimoneymentor PORT=5000 npm run dev
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  $env:NODE_ENV="test"; $env:MONGO_URI="mongodb://localhost:27017/aimoneymentor"; $env:PORT="5000"; npm run dev
+  ```
+- **Windows (cmd)**:
+  ```cmd
+  set NODE_ENV=test && set MONGO_URI=mongodb://localhost:27017/aimoneymentor && set PORT=5000 && npm run dev
+  ```
 
-Run the frontend in another terminal:
-
+#### C. Running the Frontend
+In a separate terminal, start the React client:
 ```bash
 cd client
 npm start
 ```
+*Access the UI at `http://localhost:3000`.*
 
-Default URLs:
+---
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:5000`
+## 5. Specmatic Contract & Resiliency Testing
 
-## 3. Contract Testing
+> [!IMPORTANT]
+> To avoid getting `Not Implemented` failures in your Specmatic resiliency report, you **MUST** run the backend server in **Test Mode** (`NODE_ENV=test`) before launching the test suite. If the server runs in standard dev mode, it returns `401 Unauthorized` for mock JWTs, resulting in test validation failures.
 
-### Quick Start: Global CLI (Recommended)
-
-Run tests from **anywhere** on your system:
-
+### Quick Start with Global CLI
+You can install and use the repository's helper CLI to easily run tests from any terminal window:
 ```bash
-# Install the global CLI (one-time setup)
+# Link the CLI globally (one-time setup)
 npm link
 
-# Then run tests from any directory
-specmatic-test contract
-specmatic-test resiliency:positive
-specmatic-test resiliency:all
-specmatic-test resiliency
+# Run tests
+specmatic-test contract             # Runs Contract Tests (none mode)
+specmatic-test resiliency:positive   # Runs Positive Resiliency Tests (positiveOnly mode)
+specmatic-test resiliency:all        # Runs Full Resiliency Tests (all mode)
 ```
 
-See [GLOBAL_CLI_USAGE.md](GLOBAL_CLI_USAGE.md) for detailed documentation.
+### Traditional Script Execution
 
-### Traditional Method
+Ensure the backend server is running in another terminal in **Test Mode**, then run the tests from the repository root:
 
-Contract testing runs with `schemaResiliencyTests: none`. This validates only the contract examples.
-
-From the repository root:
-
+#### Mac / Linux / Windows (Bash)
 ```bash
+# Contract Tests
 bash scripts/run-specmatic-mode.sh none
-```
 
-On Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 none
-```
-
-Or from the backend folder:
-
-```bash
-cd server
-npm run test:contract
-```
-
-Expected passing summary:
-
-```text
-Tests run: 3, Successes: 3, Failures: 0, WIP: 0, Errors: 0
-```
-
-Generated report:
-
-- `reports/contract-test-report.html`
-
-## 4. Schema Resiliency Testing
-
-Positive-only resiliency testing runs with `schemaResiliencyTests: positiveOnly`. It generates valid input variations from the schema.
-
-```bash
+# Positive Resiliency Tests
 bash scripts/run-specmatic-mode.sh positiveOnly
-```
 
-On Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 positiveOnly
-```
-
-Expected passing summary:
-
-```text
-Tests run: 42, Successes: 42, Failures: 0, WIP: 0, Errors: 0
-```
-
-Generated report:
-
-- `reports/positive-only-report.html`
-
-Full resiliency testing runs with `schemaResiliencyTests: all`. It generates valid and invalid combinations to exercise error handling and edge cases.
-
-```bash
+# Full Resiliency Tests
 bash scripts/run-specmatic-mode.sh all
 ```
 
-On Windows PowerShell:
-
+#### Windows (PowerShell)
 ```powershell
+# Contract Tests
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 none
+
+# Positive Resiliency Tests
+powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 positiveOnly
+
+# Full Resiliency Tests
 powershell -ExecutionPolicy Bypass -File scripts/run-specmatic-mode.ps1 all
 ```
 
-Expected passing summary:
+---
 
-```text
-Tests run: 600, Successes: 600, Failures: 0
-```
+## 6. Why `NODE_ENV=test` is Required
 
-Generated report:
+When executing Specmatic Contract/Resiliency tests, the tests issue requests to modify, create, and delete resources using hardcoded mock user tokens and transaction IDs (e.g. `000000000000000000000002`).
 
-- `reports/resiliency-report.html`
+Running the server with `NODE_ENV=test` adjusts backend behavior to support this verification safely:
+1. **Auto-Seeding**: The server automatically seeds the database with the mock test users and transaction IDs (defined in `server/server.js`) required by the Specmatic contract examples.
+2. **Mock JWT Verification**: The authentication middleware (`server/middleware/auth.js`) detects the test environment and accepts the dummy JWT token signature `Bearer (string)` sent by Specmatic, creating a mock admin session. If the server is in development mode, this check is rejected with `401 Unauthorized`, causing the tests to fail.
 
-## 5. Test Results
+---
 
-| Test mode | `schemaResiliencyTests` | Expected tests | Expected successes | Expected failures | Report |
-| --- | --- | ---: | ---: | ---: | --- |
-| Contract Tests | `none` | 3 | 3 | 0 | `reports/contract-test-report.html` |
-| Positive Only Resiliency Tests | `positiveOnly` | 42 | 42 | 0 | `reports/positive-only-report.html` |
-| Full Resiliency Tests | `all` | 600 | 600 | 0 | `reports/resiliency-report.html` |
+## 7. Command Reference Table
 
-The runner also writes raw console output beside each HTML report:
+| Task | Mac / Linux / Windows (Bash) | Windows (PowerShell) | Windows (cmd) |
+| :--- | :--- | :--- | :--- |
+| **Start server (Dev Mode)** | `npm run dev` | `npm run dev` | `npm run dev` |
+| **Start server (Test Mode)** | `NODE_ENV=test npm run dev` | `$env:NODE_ENV="test"; npm run dev` | `set NODE_ENV=test && npm run dev` |
+| **Seed database manually** | `npm run seed` | `npm run seed` | `npm run seed` |
+| **Run Contract Tests** | `bash scripts/run-specmatic-mode.sh none` | `.\scripts\run-specmatic-mode.ps1 none` | `powershell -File scripts/run-specmatic-mode.ps1 none` |
+| **Run Positive Resiliency** | `bash scripts/run-specmatic-mode.sh positiveOnly` | `.\scripts\run-specmatic-mode.ps1 positiveOnly` | `powershell -File scripts/run-specmatic-mode.ps1 positiveOnly` |
+| **Run Full Resiliency** | `bash scripts/run-specmatic-mode.sh all` | `.\scripts\run-specmatic-mode.ps1 all` | `powershell -File scripts/run-specmatic-mode.ps1 all` |
+| **Start Docker Backend** | `docker compose -f server/docker-compose.test.yml up -d` | `docker compose -f server/docker-compose.test.yml up -d` | `docker compose -f server/docker-compose.test.yml up -d` |
 
-- `reports/contract-test-output.txt`
-- `reports/positive-only-output.txt`
-- `reports/resiliency-output.txt`
-
-## 6. Screenshots
-
-Screenshots for submission evidence should be stored in:
-
-- `reports/screenshots/`
-
-Recommended screenshot evidence:
-
-- Contract run showing `Tests run: 3` and `Successes: 3`
-- Positive-only resiliency run showing `Tests run: 42` and `Successes: 42`
-- Full resiliency run showing `Tests run: 600` and `Successes: 600`
-
-The generated HTML reports are the primary report artifacts. Screenshots can be captured from the reports, Specmatic Studio, or GitHub Actions logs.
-
-## 7. CI/CD Pipeline
-
-Specmatic tests run in GitHub Actions through:
-
-- `.github/workflows/specmatic.yml`
-
-The workflow has separate jobs for:
-
-- Contract Tests
-- Positive Resiliency Tests
-- Full Resiliency Tests
-
-Each job:
-
-- Checks out the repository
-- Verifies the Specmatic Docker image
-- Runs the correct `schemaResiliencyTests` mode
-- Uploads the generated report and console output as GitHub Actions artifacts
-
-If Specmatic Enterprise is required, configure the workflow image and add the Enterprise license text as a `SPECMATIC_LICENSE` GitHub secret.
-
-## 8. Learnings
-
-### Contract Testing
-
-- Verifies API behavior matches the OpenAPI specification.
-- Detects breaking API changes early.
-
-### Schema Resiliency Testing
-
-- Tests how APIs react to invalid requests.
-- Ensures proper HTTP error handling.
-- Validates robustness against malformed input.
-
-### Positive Only Mode
-
-- Generates valid input variations.
-- Improves test coverage.
-
-### All Mode
-
-- Generates valid and invalid combinations.
-- Reveals edge cases and schema weaknesses.
-
-### Key Observation
-
-- Test count increased from 3 to 42 to 600.
-- More schema permutations produce greater confidence in API reliability.
-
-## 9. Repository Structure
-
-```text
-.
-|-- .github/workflows/specmatic.yml
-|-- client/
-|-- reports/
-|   |-- README.md
-|   `-- screenshots/
-|-- scripts/
-|   |-- run-specmatic-mode.ps1
-|   `-- run-specmatic-mode.sh
-|-- server/
-|   |-- package.json
-|   |-- specmatic.yaml
-|   `-- specs/openapi.yaml
-`-- specmatic/
-    `-- schema-resiliency/
-        |-- README.md
-        `-- examples/
-```
+---
