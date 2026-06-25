@@ -55,7 +55,7 @@ exports.listUsers = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
-  const { name, email, password, role, status } = req.body;
+  const { name, email, password, role, status } = req.body || {};
 
   if (!name || !email || !password) {
     return res.status(400).json({ msg: 'name, email and password are required' });
@@ -124,7 +124,7 @@ exports.createUser = async (req, res) => {
 };
 
 exports.updateUser = async (req, res) => {
-  const { name, role, status, password } = req.body;
+  const { name, role, status, password } = req.body || {};
 
   if (role && !ROLES.includes(role)) {
     return res.status(400).json({ msg: 'Invalid role' });

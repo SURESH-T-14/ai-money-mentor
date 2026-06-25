@@ -95,7 +95,7 @@ Snapshot: ${JSON.stringify(snapshot)}`;
 
 exports.chat = async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history } = req.body || {};
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ msg: 'Invalid message' });
     }

@@ -16,7 +16,7 @@ const ensureDbConnected = (res) => {
 };
 
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = req.body || {};
 
   if (!name || !email || !password) {
     return res.status(400).json({ msg: 'name, email and password are required' });
@@ -87,7 +87,7 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body || {};
 
   if (!email || !password) {
     return res.status(400).json({ msg: 'email and password are required' });
@@ -166,7 +166,7 @@ exports.login = async (req, res) => {
 
 exports.googleLogin = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token } = req.body || {};
     if (!token) return res.status(400).json({ msg: 'Missing token' });
 
     // In TEST mode, accept any credential and return mock user without DB operations
