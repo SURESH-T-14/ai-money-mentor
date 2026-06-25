@@ -263,10 +263,6 @@ exports.updateTransaction = async (req, res) => {
     return res.status(400).json({ msg: 'Invalid transaction payload', errors });
   }
 
-  if (Object.keys(payload).length === 0) {
-    return res.status(400).json({ msg: 'No fields provided for update' });
-  }
-
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ msg: 'Invalid transaction id' });
   }
