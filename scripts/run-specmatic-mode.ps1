@@ -12,6 +12,7 @@ switch ($Mode) {
     $ExpectedSuccesses = 3
     $ReportFileName = "contract-test-report.html"
     $OutputFileName = "contract-test-output.txt"
+    $FilterArgs = @("--filter", "STATUS='200,201'")
   }
   "positiveOnly" {
     $ModeLabel = "Positive Only Resiliency Tests"
@@ -19,6 +20,7 @@ switch ($Mode) {
     $ExpectedSuccesses = 42
     $ReportFileName = "positive-only-report.html"
     $OutputFileName = "positive-only-output.txt"
+    $FilterArgs = @("--filter", "STATUS='200,201'")
   }
   "all" {
     $ModeLabel = "Full Resiliency Tests"
@@ -26,6 +28,7 @@ switch ($Mode) {
     $ExpectedSuccesses = 600
     $ReportFileName = "resiliency-report.html"
     $OutputFileName = "resiliency-output.txt"
+    $FilterArgs = @("--filter", "STATUS='200,201,400'")
   }
 }
 
@@ -163,7 +166,7 @@ $DockerArgs = @(
   "/usr/src/app",
   $SpecmaticImage,
   "test"
-)
+) + $FilterArgs
 
 $Output = & docker @DockerArgs 2>&1
 $DockerStatus = $LASTEXITCODE

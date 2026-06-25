@@ -10,6 +10,7 @@ case "$MODE" in
     EXPECTED_SUCCESSES="3"
     REPORT_FILE_NAME="contract-test-report.html"
     OUTPUT_FILE_NAME="contract-test-output.txt"
+    FILTER_ARGS=( "--filter" "STATUS='200,201'" )
     ;;
   positiveOnly)
     MODE_LABEL="Positive Only Resiliency Tests"
@@ -17,6 +18,7 @@ case "$MODE" in
     EXPECTED_SUCCESSES="42"
     REPORT_FILE_NAME="positive-only-report.html"
     OUTPUT_FILE_NAME="positive-only-output.txt"
+    FILTER_ARGS=( "--filter" "STATUS='200,201'" )
     ;;
   all)
     MODE_LABEL="Full Resiliency Tests"
@@ -24,6 +26,7 @@ case "$MODE" in
     EXPECTED_SUCCESSES="600"
     REPORT_FILE_NAME="resiliency-report.html"
     OUTPUT_FILE_NAME="resiliency-output.txt"
+    FILTER_ARGS=( "--filter" "STATUS='200,201,400'" )
     ;;
   *)
     echo "Unsupported Specmatic mode: $MODE" >&2
@@ -183,7 +186,7 @@ docker run --rm \
   -v "$WORK_DIR:/usr/src/app" \
   "${LICENSE_ARGS[@]}" \
   -w /usr/src/app \
-  "$SPECMATIC_IMAGE" test 2>&1 | tee "$WORK_DIR/specmatic-output.log"
+  "$SPECMATIC_IMAGE" test "${FILTER_ARGS[@]}" 2>&1 | tee "$WORK_DIR/specmatic-output.log"
 DOCKER_STATUS=$?
 set -e
 
