@@ -61,6 +61,17 @@ exports.createUser = async (req, res) => {
     return res.status(400).json({ msg: 'name, email and password are required' });
   }
 
+  // Validate name length (schema: minLength 2, maxLength 100)
+  if (typeof name !== 'string' || name.length < 2 || name.length > 100) {
+    return res.status(400).json({ msg: 'Name must be between 2 and 100 characters' });
+  }
+
+  // Validate email format (basic email validation)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ msg: 'Invalid email format' });
+  }
+
   if (password.length < 6) {
     return res.status(400).json({ msg: 'Password must be at least 6 characters' });
   }
@@ -106,6 +117,11 @@ exports.updateUser = async (req, res) => {
 
   if (status && !STATUSES.includes(status)) {
     return res.status(400).json({ msg: 'Invalid status' });
+  }
+
+  // Validate name length if provided (schema: minLength 2, maxLength 100)
+  if (name !== undefined && (typeof name !== 'string' || name.length < 2 || name.length > 100)) {
+    return res.status(400).json({ msg: 'Name must be between 2 and 100 characters' });
   }
 
   try {
